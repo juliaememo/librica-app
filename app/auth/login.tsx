@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../components/AuthContext'; // Ajuste o caminho do seu contexto
+import { useAuth } from '../../components/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -64,7 +64,8 @@ export default function LoginScreen() {
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/register')}>
+      {/* Rota ajustada para apontar corretamente para a tela de registro na pasta auth */}
+      <TouchableOpacity onPress={() => router.push('/auth/register')}>
         <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
       </TouchableOpacity>
     </View>

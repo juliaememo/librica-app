@@ -49,6 +49,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "14f5beef-90be-4b9c-81dd-94f9aa399fa9"
+      }
+    },
+    "owner": "juliaememos-team"
   }
 }

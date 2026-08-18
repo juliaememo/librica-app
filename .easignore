@@ -1,0 +1,8 @@
+# .easignore
+node_modules
+.expo
+dist
+.git
+*.apk
+*.aab
+.DS_Store

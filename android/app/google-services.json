@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1009349115208",
+    "project_id": "librica-app",
+    "storage_bucket": "librica-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009349115208:android:3112b1878f2121812ac77d",
+        "android_client_info": {
+          "package_name": "com.nextstation.librica"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcGYfOswoffjYHZe2ByCtTDrbk2k49zQ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

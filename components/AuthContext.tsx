@@ -1,35 +1,29 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'; 
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithCredential
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../src/services/firebase'; // Ajuste o caminho se necessário
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
-const AuthContext = createContext({
-  user: null as any,
-  isNewUser: true,
-  login: async (email: string, password: string) => {},
-  register: async (email: string, password: string, displayName: string) => {},
-  loginWithGoogle: async (idToken: string) => {},
-  logout: async () => {},
-});
+interface AuthContextData {
+  user: any;
+  isNewUser: boolean;
+  initializing: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, displayName: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<any>(null);
   const [isNewUser, setIsNewUser] = useState(true);
+  const [initializing, setInitializing] = useState(true);
 
-  // Monitora o estado de autenticação do Firebase
+  // Monitora o estado de autenticação nativo
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const subscriber = auth().onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
-        // Busca dados adicionais no Firestore se necessário
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
+        // Busca dados adicionais no Firestore
+        const userDoc = await firestore().collection('users').doc(firebaseUser.uid).get();
         
         setUser({
           uid: firebaseUser.uid,
@@ -41,21 +35,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
         setIsNewUser(true);
       }
+      
+      if (initializing) {
+        setInitializing(false);
+      }
     });
 
-    return unsubscribe;
+    return subscriber; // unsubscribe ao desmontar
   }, []);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    await auth().signInWithEmailAndPassword(email, password);
   };
 
   const register = async (email: string, password: string, displayName: string) => {
-    const response = await createUserWithEmailAndPassword(auth, email, password);
+    const response = await auth().createUserWithEmailAndPassword(email, password);
     const firebaseUser = response.user;
 
-    // Salva informações extras do usuário no Firestore
-    await setDoc(doc(db, 'users', firebaseUser.uid), {
+    // Salva informações extras no Firestore
+    await firestore().collection('users').doc(firebaseUser.uid).set({
       uid: firebaseUser.uid,
       email,
       displayName,
@@ -63,31 +61,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
-  const loginWithGoogle = async (idToken: string) => {
-    const credential = GoogleAuthProvider.credential(idToken);
-    const response = await signInWithCredential(auth, credential);
-    const firebaseUser = response.user;
-
-    // Verifica se o usuário já existe no Firestore; se não, cria
-    const userDocRef = doc(db, 'users', firebaseUser.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-      await setDoc(userDocRef, {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        displayName: firebaseUser.displayName,
-        createdAt: new Date(),
-      });
-    }
-  };
-
   const logout = async () => {
-    await signOut(auth);
+    await auth().signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, isNewUser, login, register, loginWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, isNewUser, initializing, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
