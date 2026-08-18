@@ -33,6 +33,8 @@ body {
 }
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #000;
+    background-color: #000000;
   }
 }`;
+
+// esse arquivo todo é pro caso da gente querer um bagulho web, então não vou ligar pra ele por enquanto

@@ -8,10 +8,10 @@ export default function NotFoundScreen() {
     <>
       <Stack.Screen options={{ title: 'Oops!' }} />
       <View style={styles.container}>
-        <Text style={styles.title}>This screen doesn't exist.</Text>
+        <Text style={styles.title}>Essa tela não existe.</Text>
 
         <Link href="/" style={styles.link}>
-          <Text style={styles.linkText}>Go to home screen!</Text>
+          <Text style={styles.linkText}>Volte para o início!</Text>
         </Link>
       </View>
     </>
@@ -38,3 +38,5 @@ const styles = StyleSheet.create({
     color: '#2e78b7',
   },
 });
+
+// essa página é de tratamento de erro, então meio que caguei também
