@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // As suas credenciais do Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDcGYfOswoffjYHZe2ByCtTDrbk2k49zQ4",
+  apiKey: "AIzaSyALbSI__XTTJftLRIOMJfaFv6xOU1ulk9M",
   authDomain: "librica-app.firebaseapp.com",
   projectId: "librica-app",
   storageBucket: "librica-app.firebasestorage.app",
@@ -17,19 +17,21 @@ const firebaseConfig = {
 // Inicializa o Firebase (evitando duplicar instâncias)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Inicializa a Autenticação com AsyncStorage de forma segura para o React Native
-let auth;
+// Inicializa a Autenticação com AsyncStorage de forma segura para o React Native/Expo
+let authInstance;
 try {
-  // Tenta buscar se o auth já foi inicializado para evitar o erro de re-inicialização
-  auth = getAuth(app);
+  // Tenta recuperar a instância se já existir
+  authInstance = getAuth(app);
 } catch (e) {
-  // Se não foi, inicializa com a persistência do AsyncStorage
-  auth = initializeAuth(app, {
+  // Se não existir, inicializa com a persistência do AsyncStorage
+  authInstance = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
   });
 }
 
 // Inicializa o Banco de Dados (Firestore)
-const db = getFirestore(app);
+const dbInstance = getFirestore(app);
 
-export { db, auth };
+// Exporta as instâncias corretamente
+export const auth = authInstance;
+export const db = dbInstance;

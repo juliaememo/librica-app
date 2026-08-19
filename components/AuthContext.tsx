@@ -1,72 +1,71 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
+import { 
+  onAuthStateChanged, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  signOut,
+  User
+} from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { auth, db } from '@/src/services/firebase';
 
 interface AuthContextData {
-  user: any;
-  isNewUser: boolean;
-  initializing: boolean;
+  user: User | null;
+  loading: boolean;
+  register: (email: string, password: string, displayName: string, surname: string, username: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, displayName: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
-  const [isNewUser, setIsNewUser] = useState(true);
-  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Monitora o estado de autenticação nativo
   useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(async (firebaseUser) => {
-      if (firebaseUser) {
-        // Busca dados adicionais no Firestore
-        const userDoc = await firestore().collection('users').doc(firebaseUser.uid).get();
-        
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName || userDoc.data()?.displayName,
-        });
-        setIsNewUser(false);
-      } else {
-        setUser(null);
-        setIsNewUser(true);
-      }
-      
-      if (initializing) {
-        setInitializing(false);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
     });
 
-    return subscriber; // unsubscribe ao desmontar
+    return unsubscribe;
   }, []);
 
-  const login = async (email: string, password: string) => {
-    await auth().signInWithEmailAndPassword(email, password);
+  const register = async (email: string, password: string, displayName: string, surname: string, username: string) => {
+    try {
+      // 1. Cria o usuário no Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+
+      // 2. Salva os dados detalhados no Firestore na coleção 'users'
+      await setDoc(doc(db, 'users', firebaseUser.uid), {
+        uid: firebaseUser.uid,
+        nome: displayName, // Salvo como 'nome' para compatibilidade com a tela de perfil
+        displayName: displayName,
+        sobrenome: surname,
+        nickname: username,
+        email: email,
+        fotoPerfil: '',
+        createdAt: new Date().toISOString(),
+      });
+
+      setUser(firebaseUser);
+    } catch (error) {
+      throw error;
+    }
   };
 
-  const register = async (email: string, password: string, displayName: string) => {
-    const response = await auth().createUserWithEmailAndPassword(email, password);
-    const firebaseUser = response.user;
-
-    // Salva informações extras no Firestore
-    await firestore().collection('users').doc(firebaseUser.uid).set({
-      uid: firebaseUser.uid,
-      email,
-      displayName,
-      createdAt: new Date(),
-    });
+  const login = async (email: string, password: string) => {
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
-    await auth().signOut();
+    await signOut(auth);
   };
 
   return (
-    <AuthContext.Provider value={{ user, isNewUser, initializing, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, register, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

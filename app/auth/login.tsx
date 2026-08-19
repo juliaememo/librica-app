@@ -20,7 +20,7 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       await login(email, password);
-      router.replace('/(tabs)');
+      router.replace('../(tabs)');
     } catch (error: any) {
       Alert.alert('Erro ao entrar', error.message);
     } finally {
@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#ddd',
+    color: '#5a3d40',
   },
   buttonContainer: {
     width: '100%',

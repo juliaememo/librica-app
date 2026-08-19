@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../components/AuthContext';
 
@@ -8,19 +9,38 @@ export default function RegisterScreen() {
   const { register } = useAuth();
 
   const [displayName, setDisplayName] = useState('');
+  const [surname, setSurname] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const togglePasswordVisibility = () => setPasswordVisible(!passwordVisible);
+  const toggleConfirmPasswordVisibility = () => setConfirmPasswordVisible(!confirmPasswordVisible);
+
   const handleRegister = async () => {
-    if (!displayName || !email || !password) {
+    if (!displayName || !surname || !username || !email || !password || !confirmPassword) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres.');
       return;
     }
 
     try {
       setLoading(true);
-      await register(email, password, displayName);
+      // Passando todos os parâmetros exigidos pelo AuthContext
+      await register(email, password, displayName, surname, username);
       router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Erro no cadastro', error.message);
@@ -44,6 +64,22 @@ export default function RegisterScreen() {
 
       <TextInput
         style={styles.input}
+        placeholder="Sobrenome"
+        placeholderTextColor="#888"
+        value={surname}
+        onChangeText={setSurname}
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nome de usuário"
+        placeholderTextColor="#888"
+        value={username}
+        onChangeText={setUsername}
+      />
+
+      <TextInput
+        style={styles.input}
         placeholder="E-mail"
         placeholderTextColor="#888"
         autoCapitalize="none"
@@ -52,14 +88,33 @@ export default function RegisterScreen() {
         onChangeText={setEmail}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="#888"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          placeholderTextColor="#888"
+          secureTextEntry={!passwordVisible}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity style={styles.eyeButton} onPress={togglePasswordVisibility}>
+          <FontAwesome5 name={passwordVisible ? 'eye-slash' : 'eye'} size={20} color="#555" />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Confirmar senha"
+          placeholderTextColor="#888"
+          secureTextEntry={!confirmPasswordVisible}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
+        <TouchableOpacity style={styles.eyeButton} onPress={toggleConfirmPasswordVisibility}>
+          <FontAwesome5 name={confirmPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="#555" />
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity 
         style={styles.buttonContainer}
@@ -73,7 +128,6 @@ export default function RegisterScreen() {
         )}
       </TouchableOpacity>
 
-      {/* Rota ajustada para apontar corretamente para a tela de login na pasta auth */}
       <TouchableOpacity onPress={() => router.push('/auth/login')}>
         <Text style={styles.linkText}>Já tem uma conta? Faça login</Text>
       </TouchableOpacity>
@@ -111,6 +165,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#ddd',
+    color: '#5a3d40',
+  },
+  passwordContainer: {
+    width: '100%',
+    marginBottom: 15,
+    position: 'relative',
+    height: 50,
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    padding: 5,
   },
   buttonContainer: {
     width: '100%',

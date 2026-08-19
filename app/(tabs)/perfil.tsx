@@ -1,13 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useAuth } from '@/components/AuthContext';
-import { FontAwesome5 as FontAwesome } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text, View } from '@/components/Themed';
+import { launchImageLibraryAsync } from 'expo-image-picker';
+import { FontAwesome } from '@expo/vector-icons';
+
+import { db } from '@/src/services/firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function PerfilScreen() {
-  const { logout } = useAuth();
-  const insets = useSafeAreaInsets(); // 1. Pega as medidas da área segura da câmera
+  const { user, logout } = useAuth();
+  const insets = useSafeAreaInsets();
   
   const [nome, setNome] = useState('');
   const [sobrenome, setSobrenome] = useState('');
@@ -16,32 +20,74 @@ export default function PerfilScreen() {
   const [progressoModulos, setProgressoModulos] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [progressoTotal, setProgressoTotal] = useState(0);
 
-  const escolherFoto = () => {
-    Alert.alert('Selecionar foto', 'Funcionalidade para escolher foto da galeria - placeholder');
+  useEffect(() => {
+    async function carregarDadosUsuario() {
+      if (user?.uid) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setNome(data.nome || data.displayName || user.displayName || '');
+            setSobrenome(data.sobrenome || data.surname || '');
+            setNickname(data.nickname || '');
+            
+            if (data.fotoPerfil) {
+              setFotoPerfil(data.fotoPerfil);
+            }
+          }
+        } catch (error) {
+          console.error("Erro ao buscar dados do usuário:", error);
+        }
+      }
+    }
+
+    carregarDadosUsuario();
+  }, [user?.uid]);
+
+  const escolherFoto = async () => {
+    try {
+      const result = await launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (result.canceled) {
+        return;
+      }
+
+      const uri = result.assets[0].uri;
+      setFotoPerfil(uri);
+
+      if (user?.uid) {
+        const userDocRef = doc(db, 'users', user.uid);
+        await updateDoc(userDocRef, {
+          fotoPerfil: uri,
+        });
+        
+        Alert.alert("Sucesso", "Foto de perfil atualizada!");
+      }
+    } catch (error) {
+      console.error("Erro ao selecionar ou salvar foto:", error);
+      Alert.alert("Erro", "Não foi possível atualizar a foto.");
+    }
   };
 
   const logoutUser = () => {
     logout();
   };
 
-  // Dados simulados para desenvolvimento
-  React.useEffect(() => {
-    setNome('João Pedro');
-    setSobrenome('Silva');
-    setNickname('joao.pedro');
-    setProgressoModulos([25, 50, 75, 100, 0, 0, 50]);
-    setProgressoTotal(45);
-  }, []);
-
   return (
     <ScrollView 
       style={styles.container}
       contentContainerStyle={[
         styles.contentContainer,
-        { paddingTop: insets.top > 0 ? insets.top + 10 : 20 } // 2. Empurra o conteúdo para baixo da câmera
+        { paddingTop: insets.top > 0 ? insets.top + 10 : 20 }
       ]}
     >
-      {/* Título da Aba de Perfil */}
       <View style={styles.headerContainer}>
         <Text style={styles.headerTitle}>Perfil</Text>
       </View>
@@ -49,14 +95,19 @@ export default function PerfilScreen() {
       <View style={styles.perfilContent}>
         {/* Foto de perfil */}
         <View style={styles.fotoPerfilWrapper}>
-          <View style={styles.fotoPerfilContainer}>
-            <TouchableOpacity onPress={escolherFoto}>
-              <Image
-                source={fotoPerfil ? { uri: fotoPerfil } : require('@/assets/images/librica-icon.png')}
-                style={styles.fotoPerfil}
-              />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity onPress={escolherFoto} activeOpacity={0.8}>
+            <View style={styles.fotoPerfilContainer}>
+            <Image
+              source={
+                fotoPerfil && fotoPerfil.length > 0 
+                  ? { uri: fotoPerfil } 
+                  : require('@/assets/images/librica-icon.png')
+              }
+              style={styles.fotoPerfil}
+              resizeMode="cover"
+            />
+            </View>
+          </TouchableOpacity>
           <TouchableOpacity onPress={escolherFoto}>
             <Text style={styles.adicionarFoto}>+ Adicionar foto</Text>
           </TouchableOpacity>
@@ -65,13 +116,13 @@ export default function PerfilScreen() {
         {/* Nome e Nickname */}
         <View style={styles.dadosUsuario}>
           <Text style={styles.label}>Nome</Text>
-          <Text style={styles.valorUsuario}>{nome}</Text>
+          <Text style={styles.valorUsuario}>{nome || 'Não informado'}</Text>
           
           <Text style={styles.label}>Sobrenome</Text>
-          <Text style={styles.valorUsuario}>{sobrenome}</Text>
+          <Text style={styles.valorUsuario}>{sobrenome || 'Não informado'}</Text>
           
           <Text style={styles.label}>Nickname</Text>
-          <Text style={styles.valorUsuario}>{nickname}</Text>
+          <Text style={styles.valorUsuario}>{nickname || 'Não informado'}</Text>
         </View>
 
         {/* Progresso */}
@@ -92,7 +143,7 @@ export default function PerfilScreen() {
 
         {/* Botão Logout */}
         <TouchableOpacity style={styles.btnLogout} onPress={logoutUser}>
-          <FontAwesome name="sign-out-alt" size={16} color="#fff" style={{ marginRight: 8 }} />
+          <FontAwesome name="sign-out" size={16} color="#fff" style={{ marginRight: 8 }} />
           <Text style={styles.btnLogoutTexto}>Sair da conta</Text>
         </TouchableOpacity>
       </View>
@@ -140,7 +191,6 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#ddd',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
@@ -148,8 +198,8 @@ const styles = StyleSheet.create({
     borderColor: '#7B3E52',
   },
   fotoPerfil: {
-    width: '100%',
-    height: '100%',
+    width: 100,
+    height: 100,
     borderRadius: 50,
   },
   adicionarFoto: {
@@ -157,6 +207,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#7B3E52',
     fontWeight: '600',
+    textAlign: 'center',
   },
   dadosUsuario: {
     marginBottom: 20,
@@ -226,5 +277,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-}); 
+  }, 
+});
