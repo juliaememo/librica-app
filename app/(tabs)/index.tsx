@@ -12,6 +12,7 @@ const modulosData = [
     icone: 'atom',
     corTema: '#00796b',
     corFundo: '#e0f2f1',
+    videoId: 'dQw4w9WgXcQ',
   },
   {
     id: '2',
@@ -20,6 +21,7 @@ const modulosData = [
     icone: 'flask',
     corTema: '#880e4f',
     corFundo: '#fce4ec',
+    videoId: 'dQw4w9WgXcQ',
   },
   {
     id: '3',
@@ -28,6 +30,7 @@ const modulosData = [
     icone: 'cube',
     corTema: '#f57f17',
     corFundo: '#fffde7',
+    videoId: 'dQw4w9WgXcQ',
   },
   {
     id: '4',
@@ -36,6 +39,7 @@ const modulosData = [
     icone: 'tint',
     corTema: '#512da8',
     corFundo: '#ede7f6',
+    videoId: 'dQw4w9WgXcQ',
   },
   {
     id: '5',
@@ -44,6 +48,7 @@ const modulosData = [
     icone: 'chart-line',
     corTema: '#0277bd',
     corFundo: '#e1f5fe',
+    videoId: 'dQw4w9WgXcQ',
   },
   {
     id: '6',
@@ -52,6 +57,7 @@ const modulosData = [
     icone: 'filter',
     corTema: '#d84315',
     corFundo: '#fbe9e7',
+    videoId: 'dQw4w9WgXcQ',
   },
   {
     id: '7',
@@ -60,6 +66,7 @@ const modulosData = [
     icone: 'balance-scale',
     corTema: '#2e7d32',
     corFundo: '#e8f5e9',
+    videoId: 'dQw4w9WgXcQ',
   },
 ];
 
@@ -89,7 +96,7 @@ export default function HomeScreen() {
           style={[styles.card, { borderColor: modulo.corTema, backgroundColor: modulo.corFundo }]}
           onPress={() => router.push({
             pathname: '/modulo-detalhe', 
-            params: { id: modulo.id, titulo: modulo.titulo }
+            params: { id: modulo.id, titulo: modulo.titulo, videoId: modulo.videoId }
           })}
         >
           <View style={styles.cardContent}>
@@ -124,7 +131,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingTop: 60, // Margem de segurança adequada para a câmera/notch do celular
+    paddingTop: 60,
     paddingBottom: 40,
   },
   brandContainer: {

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ModuloExercicioScreen() {
   const router = useRouter();
-  const { titulo } = useLocalSearchParams();
+  const { titulo } = useLocalSearchParams<{ titulo: string }>();
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
@@ -21,7 +21,6 @@ export default function ModuloExercicioScreen() {
         </View>
 
         <View style={styles.footerContainer}>
-          {/* Voltar para a página de vídeo */}
           <TouchableOpacity 
             style={[styles.button, styles.backButton]} 
             onPress={() => router.back()}
@@ -30,7 +29,6 @@ export default function ModuloExercicioScreen() {
             <Text style={styles.backButtonText}>Voltar</Text>
           </TouchableOpacity>
 
-          {/* Concluir e voltar direto para a Home */}
           <TouchableOpacity 
             style={[styles.button, styles.finishButton]} 
             onPress={() => router.replace('/(tabs)')}
