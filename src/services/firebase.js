@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // As suas credenciais do Firebase
@@ -32,6 +33,10 @@ try {
 // Inicializa o Banco de Dados (Firestore)
 const dbInstance = getFirestore(app);
 
+// Inicializa o Storage (vídeos do Dicionário — streaming/download temporário, nada empacotado no app)
+const storageInstance = getStorage(app);
+
 // Exporta as instâncias corretamente
 export const auth = authInstance;
 export const db = dbInstance;
+export const storage = storageInstance;

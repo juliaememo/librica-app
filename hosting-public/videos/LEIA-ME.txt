@@ -1,0 +1,15 @@
+Coloque aqui os vídeos do Dicionário de Sinais e suba com:
+  firebase deploy --only hosting
+
+Nomes esperados (iguais ao mapa em src/services/sinaisHosting.ts):
+  atomo.mp4
+  vidraria.mp4
+  substancia.mp4
+  mistura.mp4
+  grafico.mp4
+  separacao.mp4
+  balanca.mp4
+  molecula.mp4
+
+Dicas: .mp4 (H.264 + AAC), de preferência vertical 9:16 (formato Shorts),
+720p e poucos MB cada um — o plano gratuito tem limite diário de transferência.

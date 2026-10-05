@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useAuth } from '@/components/AuthContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Text, View } from '@/components/Themed';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { FontAwesome } from '@expo/vector-icons';
 
 import { db } from '@/src/services/firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { calcularProgressoModulos, calcularProgressoTotal } from '@/src/services/progresso';
 
 export default function PerfilScreen() {
   const { user, logout } = useAuth();
@@ -20,38 +22,47 @@ export default function PerfilScreen() {
   const [progressoModulos, setProgressoModulos] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
   const [progressoTotal, setProgressoTotal] = useState(0);
 
-  useEffect(() => {
-    async function carregarDadosUsuario() {
-      if (user?.uid) {
-        try {
-          const userDocRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userDocRef);
-          
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            setNome(data.nome || data.displayName || user.displayName || '');
-            setSobrenome(data.sobrenome || data.surname || '');
-            setNickname(data.nickname || '');
-            
-            if (data.fotoPerfil) {
-              setFotoPerfil(data.fotoPerfil);
+  // Recarrega ao focar a aba: o progresso muda ao ver vídeos e concluir
+  // exercícios, então o perfil precisa refletir a volta dessas telas.
+  useFocusEffect(
+    useCallback(() => {
+      async function carregarDadosUsuario() {
+        if (user?.uid) {
+          try {
+            const userDocRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (userDoc.exists()) {
+              const data = userDoc.data();
+              setNome(data.nome || data.displayName || user.displayName || '');
+              setSobrenome(data.sobrenome || data.surname || '');
+              setNickname(data.nickname || '');
+
+              if (data.fotoPerfil) {
+                setFotoPerfil(data.fotoPerfil);
+              }
+
+              // Progresso: vídeo = 50% + exercícios = 50% (por etapa).
+              const modulos = calcularProgressoModulos(data);
+              setProgressoModulos(modulos);
+              setProgressoTotal(calcularProgressoTotal(modulos));
             }
+          } catch (error) {
+            console.error("Erro ao buscar dados do usuário:", error);
           }
-        } catch (error) {
-          console.error("Erro ao buscar dados do usuário:", error);
         }
       }
-    }
 
-    carregarDadosUsuario();
-  }, [user?.uid]);
+      carregarDadosUsuario();
+    }, [user?.uid]),
+  );
 
   const escolherFoto = async () => {
     try {
       const result = await launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: [1, 1],
         quality: 0.8,
       });
 

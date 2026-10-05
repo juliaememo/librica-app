@@ -24,6 +24,11 @@ export default function RootLayout() {
     'Gabarito-Black': require('../assets/fonts/Gabarito-Black.ttf'),
     'Gabarito-Bold': require('../assets/fonts/Gabarito-Bold.ttf'), 
     'Gabarito-Regular': require('../assets/fonts/Gabarito-Regular.ttf'),
+    // Ícones do Dicionário/abas (FontAwesome5): pré-carregados para nunca
+    // renderizarem com fonte reserva (que os deixava pretos).
+    'FontAwesome5Free-Solid': require('../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Solid.ttf'),
+    'FontAwesome5Free-Regular': require('../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf'),
+    'FontAwesome5Free-Brand': require('../node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf'),
   });
 
   // Se der erro ao carregar as fontes, lança o erro

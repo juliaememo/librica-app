@@ -1,8 +1,18 @@
-import React from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput } from 'react-native';
 import { FontAwesome, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Text, View } from '@/components/Themed';
+import { useAuth } from '@/components/AuthContext';
+import { db } from '@/src/services/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { calcularProgressoModulos, calcularProgressoTotal } from '@/src/services/progresso';
+import {
+  DESCRICAO_MODULO_SECRETO,
+  TITULO_MODULO_SECRETO,
+  VIDEO_ID_MODULO_SECRETO,
+} from '@/src/data/modulo-secreto';
 
 const modulosData = [
   {
@@ -12,7 +22,7 @@ const modulosData = [
     icone: 'atom',
     corTema: '#00796b',
     corFundo: '#e0f2f1',
-    videoId: 'dQw4w9WgXcQ',
+    videoId: 'FSyAehMdpyI',
   },
   {
     id: '2',
@@ -21,7 +31,7 @@ const modulosData = [
     icone: 'flask',
     corTema: '#880e4f',
     corFundo: '#fce4ec',
-    videoId: 'dQw4w9WgXcQ',
+    videoId: 'WorXRPZqjeI',
   },
   {
     id: '3',
@@ -30,7 +40,7 @@ const modulosData = [
     icone: 'cube',
     corTema: '#f57f17',
     corFundo: '#fffde7',
-    videoId: 'dQw4w9WgXcQ',
+    videoId: 'hbwKwNhIFM4',
   },
   {
     id: '4',
@@ -39,7 +49,7 @@ const modulosData = [
     icone: 'tint',
     corTema: '#512da8',
     corFundo: '#ede7f6',
-    videoId: 'dQw4w9WgXcQ',
+    videoId: 'iWQfTI0_fFc',
   },
   {
     id: '5',
@@ -48,7 +58,7 @@ const modulosData = [
     icone: 'chart-line',
     corTema: '#0277bd',
     corFundo: '#e1f5fe',
-    videoId: 'dQw4w9WgXcQ',
+    videoId: 'KcMkKfcc7_M',
   },
   {
     id: '6',
@@ -57,7 +67,7 @@ const modulosData = [
     icone: 'filter',
     corTema: '#d84315',
     corFundo: '#fbe9e7',
-    videoId: 'dQw4w9WgXcQ',
+    videoId: '3__FIWo28QM',
   },
   {
     id: '7',
@@ -66,12 +76,78 @@ const modulosData = [
     icone: 'balance-scale',
     corTema: '#2e7d32',
     corFundo: '#e8f5e9',
-    videoId: 'dQw4w9WgXcQ',
+    videoId: 'oCI-07oGg_s',
   },
 ];
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  // Módulo secreto: só aparece com 100% de progresso total.
+  // A senha vem do Firestore (config/geral), nunca do código.
+  const [progressoTotal, setProgressoTotal] = useState<number>(0);
+  const [senhaRemota, setSenhaRemota] = useState<string | null>(null);
+  const [senhaVisivel, setSenhaVisivel] = useState<boolean>(false);
+  const [senha, setSenha] = useState<string>('');
+  const [senhaErro, setSenhaErro] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        try {
+          if (!user?.uid) return;
+          const snap = await getDoc(doc(db, 'users', user.uid));
+          if (snap.exists()) {
+            const modulos = calcularProgressoModulos(snap.data());
+            setProgressoTotal(calcularProgressoTotal(modulos));
+          }
+          try {
+            const configSnap = await getDoc(doc(db, 'config', 'geral'));
+            if (configSnap.exists()) {
+              const valor = (configSnap.data() as Record<string, unknown>)['senhaModuloSecreto'];
+              setSenhaRemota(typeof valor === 'string' ? valor : null);
+            }
+          } catch {
+            // Sem acesso ao config: a senha será pedida com aviso de conexão.
+          }
+        } catch {
+          // mantém o valor atual
+        }
+      })();
+    }, [user?.uid]),
+  );
+
+  const secretoLiberado = progressoTotal >= 100;
+
+  function abrirSecreto() {
+    setSenha('');
+    setSenhaErro(null);
+    setSenhaVisivel(true);
+  }
+
+  function confirmarSenha() {
+    if (!senhaRemota) {
+      setSenhaErro('Sem conexão para validar. Tente novamente online.');
+      return;
+    }
+    if (senha === senhaRemota) {
+      setSenhaVisivel(false);
+      setSenha('');
+      setSenhaErro(null);
+      router.push({
+        pathname: '/modulo-detalhe',
+        params: {
+          id: '8',
+          titulo: TITULO_MODULO_SECRETO,
+          videoId: VIDEO_ID_MODULO_SECRETO,
+          semExercicio: '1',
+        },
+      });
+    } else {
+      setSenhaErro('Senha incorreta. Tente novamente.');
+    }
+  }
 
   return (
     <ScrollView 
@@ -120,6 +196,79 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
       ))}
+
+      {secretoLiberado && (
+        <TouchableOpacity
+          style={[styles.card, styles.secretoCard]}
+          onPress={abrirSecreto}
+          accessibilityRole="button"
+          accessibilityLabel="Módulo Secreto, bloqueado por senha"
+        >
+          <View style={styles.cardContent}>
+            <View style={styles.textContainer}>
+              <Text style={[styles.cardTitle, { color: '#4a2c00' }]}>
+                {TITULO_MODULO_SECRETO}
+              </Text>
+              <Text style={styles.cardDescription}>
+                {DESCRICAO_MODULO_SECRETO}
+              </Text>
+
+              <View style={[styles.tagBadge, { backgroundColor: '#fff', borderColor: '#4a2c00' }]}>
+                <FontAwesome name="lock" size={12} color="#4a2c00" style={{ marginRight: 6 }} />
+                <Text style={[styles.tagBadgeText, { color: '#4a2c00' }]}>Só com senha</Text>
+              </View>
+            </View>
+
+            <View style={[styles.iconBox, { borderColor: '#4a2c00', backgroundColor: '#fff' }]}>
+              <FontAwesome name="gift" size={40} color="#4a2c00" />
+            </View>
+          </View>
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={senhaVisivel}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSenhaVisivel(false)}
+      >
+        <View style={styles.senhaFundo}>
+          <View style={styles.senhaBox}>
+            <FontAwesome name="lock" size={28} color="#4a2c00" />
+            <Text style={styles.senhaTitulo}>{TITULO_MODULO_SECRETO}</Text>
+            <Text style={styles.senhaSubtitulo}>Digite a senha para entrar</Text>
+            <TextInput
+              style={[styles.senhaInput, senhaErro && styles.senhaInputErro]}
+              value={senha}
+              onChangeText={(texto) => {
+                setSenha(texto);
+                setSenhaErro(null);
+              }}
+              placeholder="Senha"
+              placeholderTextColor="#a89a91"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              onSubmitEditing={confirmarSenha}
+            />
+            {senhaErro && <Text style={styles.senhaErroTexto}>{senhaErro}</Text>}
+            <View style={styles.senhaBotoes}>
+              <TouchableOpacity
+                style={[styles.senhaBotao, styles.senhaCancelar]}
+                onPress={() => setSenhaVisivel(false)}
+              >
+                <Text style={styles.senhaCancelarTexto}>Voltar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.senhaBotao, styles.senhaConfirmar]}
+                onPress={confirmarSenha}
+              >
+                <Text style={styles.senhaConfirmarTexto}>Entrar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -225,5 +374,88 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  secretoCard: {
+    borderColor: '#4a2c00',
+    backgroundColor: '#ffe9b8',
+  },
+  senhaFundo: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  senhaBox: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#e6c687',
+    padding: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  senhaTitulo: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#5a3d40',
+  },
+  senhaSubtitulo: {
+    fontSize: 14,
+    color: '#8c7b7d',
+    marginBottom: 4,
+  },
+  senhaInput: {
+    width: '100%',
+    height: 52,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#dcd6ce',
+    paddingHorizontal: 14,
+    fontSize: 16,
+    color: '#5a3d40',
+    backgroundColor: '#fbf9f5',
+  },
+  senhaInputErro: {
+    borderColor: '#b00020',
+  },
+  senhaErroTexto: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#b00020',
+  },
+  senhaBotoes: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+    marginTop: 8,
+  },
+  senhaBotao: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+  },
+  senhaCancelar: {
+    backgroundColor: '#fff',
+    borderColor: '#7B3E52',
+  },
+  senhaCancelarTexto: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#7B3E52',
+  },
+  senhaConfirmar: {
+    backgroundColor: '#4a2c00',
+    borderColor: '#4a2c00',
+  },
+  senhaConfirmarTexto: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
