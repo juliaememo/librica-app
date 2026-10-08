@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../../components/AuthContext';
+import { useAuth, isEmailFormatoValido } from '../../components/AuthContext';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -17,12 +17,24 @@ export default function LoginScreen() {
       return;
     }
 
+    if (!isEmailFormatoValido(email)) {
+      Alert.alert('E-mail inválido', 'Digite um e-mail válido, ex: nome@exemplo.com.');
+      return;
+    }
+
     try {
       setLoading(true);
-      await login(email, password);
+      const result = await login(email, password);
+      // Se o e-mail ainda não foi confirmado (fluxo do cadastro), bloqueia
+      // o acesso às abas e leva para a tela de verificação.
+      if (!result.emailVerified) {
+        router.replace('/auth/verify-email');
+        return;
+      }
       router.replace('../(tabs)');
-    } catch (error: any) {
-      Alert.alert('Erro ao entrar', error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Não foi possível entrar.';
+      Alert.alert('Erro ao entrar', message);
     } finally {
       setLoading(false);
     }
@@ -52,7 +64,7 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.buttonContainer}
         onPress={handleLogin}
         disabled={loading}
@@ -64,9 +76,15 @@ export default function LoginScreen() {
         )}
       </TouchableOpacity>
 
+      <TouchableOpacity
+        onPress={() => router.push({ pathname: '/auth/forgot-password', params: { email } })}
+      >
+        <Text style={styles.linkText}>Esqueci minha senha</Text>
+      </TouchableOpacity>
+
       {/* Rota ajustada para apontar corretamente para a tela de registro na pasta auth */}
       <TouchableOpacity onPress={() => router.push('/auth/register')}>
-        <Text style={styles.linkText}>Não tem uma conta? Cadastre-se</Text>
+        <Text style={[styles.linkText, styles.registerLink]}>Não tem uma conta? Cadastre-se</Text>
       </TouchableOpacity>
     </View>
   );
@@ -121,5 +139,10 @@ const styles = StyleSheet.create({
     color: '#7B3E52',
     marginTop: 20,
     fontSize: 14,
+    minHeight: 48,
+    textAlignVertical: 'center',
+  },
+  registerLink: {
+    marginTop: 4,
   },
 });

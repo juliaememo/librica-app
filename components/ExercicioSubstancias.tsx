@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
-import { lerMapaProgresso, marcarEtapaConcluida } from '@/src/services/progresso';
+import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import SegurarParaVer from '@/components/SegurarParaVer';
 import { embaralhar } from '@/src/utils/embaralhar';
 import {
@@ -24,8 +24,7 @@ import {
   type TipoSubstancia,
 } from '@/src/data/substancias';
 
-/** Índices (estáveis) das substâncias já acertadas. */
-const STORAGE_ETAPAS_MODULO_3 = 'librica:exercicio:3:etapasConcluidas';
+/** Índices (estáveis) das substâncias já acertadas — cache local é por usuário. */
 
 const TODOS_INDICES = SUBSTANCIAS_DATA.map((_, i) => i);
 const OPCOES: TipoSubstancia[] = ['simples', 'composta'];
@@ -52,32 +51,41 @@ export default function ExercicioSubstancias() {
   const total = SUBSTANCIAS_DATA.length;
   const atual: Substancia | null = fila.length > 0 ? SUBSTANCIAS_DATA[fila[0]] : null;
 
-  // Carrega UMA única vez por montagem: união do cache local + Firestore.
-  // Só as restantes entram na fila (embaralhadas); as acertadas ficam de fora.
+  // Carrega por usuário: conta nova no mesmo aparelho começa zerada.
+  // Cache local (por uid) + Firestore (fonte do perfil). Sem uid, sem cache.
   useEffect(() => {
     let montado = true;
     setCarregando(true);
+    setFila([]);
+    setDone([]);
+    setFeedback(null);
+    setEtapaTravada(false);
+    setTudoConcluido(false);
+    setSelecionado(null);
     (async () => {
       try {
+        const uid = user?.uid ?? auth.currentUser?.uid ?? null;
         let concluidos: number[] = [];
         try {
-          const salvo = await AsyncStorage.getItem(STORAGE_ETAPAS_MODULO_3);
-          if (salvo) {
-            const lista = JSON.parse(salvo) as unknown;
-            if (Array.isArray(lista)) {
-              concluidos = lista.filter(
-                (n): n is number =>
-                  Number.isInteger(n) && n >= 0 && n < SUBSTANCIAS_DATA.length,
-              );
+          if (uid) {
+            const salvo = await AsyncStorage.getItem(storageKeyExercicio('3', uid));
+            if (salvo) {
+              const lista = JSON.parse(salvo) as unknown;
+              if (Array.isArray(lista)) {
+                concluidos = lista.filter(
+                  (n): n is number =>
+                    Number.isInteger(n) && n >= 0 && n < SUBSTANCIAS_DATA.length,
+                );
+              }
             }
           }
         } catch {
           // segue sem o cache local
         }
         try {
-          const uid = auth.currentUser?.uid;
-          if (uid) {
-            const snap = await getDoc(doc(db, 'users', uid));
+          const uidRemoto = user?.uid ?? auth.currentUser?.uid;
+          if (uidRemoto) {
+            const snap = await getDoc(doc(db, 'users', uidRemoto));
             if (snap.exists()) {
               const etapas = lerMapaProgresso(snap.data())['3']?.etapas ?? [];
               const validos = etapas.filter(
@@ -106,14 +114,17 @@ export default function ExercicioSubstancias() {
     return () => {
       montado = false;
     };
-  }, []);
+  }, [user?.uid]);
 
   async function persistirAcerto(indice: number, novosConcluidos: number[]) {
     try {
-      await AsyncStorage.setItem(
-        STORAGE_ETAPAS_MODULO_3,
-        JSON.stringify(novosConcluidos),
-      );
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(
+          storageKeyExercicio('3', uid),
+          JSON.stringify(novosConcluidos),
+        );
+      }
     } catch {
       // segue sem o cache local
     }
@@ -177,7 +188,10 @@ export default function ExercicioSubstancias() {
     // Só zera o estado local p/ treinar de novo — o Firestore (perfil)
     // mantém as etapas já concluídas, sem retirar o progresso.
     try {
-      await AsyncStorage.setItem(STORAGE_ETAPAS_MODULO_3, JSON.stringify([]));
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio('3', uid), JSON.stringify([]));
+      }
     } catch {
       // ignora
     }

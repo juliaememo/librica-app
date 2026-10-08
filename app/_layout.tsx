@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 
 import SplashScreenComponent from './splash';
 import { useColorScheme } from '@/components/useColorScheme';
+import SinalPreviewOverlay from '@/components/SinalPreviewOverlay';
 import { AuthProvider, useAuth } from '../components/AuthContext';
 
 // Captura erros críticos para o app não fechar sozinho
@@ -59,26 +60,33 @@ export default function RootLayout() {
 // Configuração da navegação, controle de rotas por autenticação e temas
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const { user, initializing } = useAuth();
+  const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (initializing) return;
+    if (loading) return;
 
     const inAuthGroup = segments[0] === 'auth';
+    const isVerifyScreen = segments[0] === 'auth' && segments[1] === 'verify-email';
 
     if (!user && !inAuthGroup) {
       // Se o usuário não está logado e não está nas telas de autenticação, redireciona para o login
       router.replace('/auth/login');
-    } else if (user && inAuthGroup) {
-      // Se o usuário já está logado e tenta acessar as telas de auth, manda direto para as abas (index/módulos)
+    } else if (user && !user.emailVerified) {
+      // E-mail ainda não confirmado (só acontece no cadastro): prende na
+      // tela de verificação até clicar no link. Vale uma única vez.
+      if (!isVerifyScreen) {
+        router.replace('/auth/verify-email');
+      }
+    } else if (user && user.emailVerified && inAuthGroup) {
+      // Se o usuário já está logado e verificado e tenta acessar as telas de auth, manda direto para as abas (index/módulos)
       router.replace('/(tabs)');
     }
-  }, [user, initializing, segments]);
+  }, [user, loading, segments]);
 
   // Exibe um carregamento enquanto o Firebase valida se há um usuário salvo na sessão
-  if (initializing) {
+  if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fbf9f5' }}>
         <ActivityIndicator size="large" color="#7B3E52" />
@@ -88,13 +96,20 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="SplashScreen" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/login" options={{ headerShown: false }} />
-        <Stack.Screen name="auth/register" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
+      <View style={{ flex: 1 }}>
+        <Stack>
+          <Stack.Screen name="SplashScreen" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/login" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/register" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/verify-email" options={{ headerShown: false }} />
+          <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        </Stack>
+        {/* Prévia global do vídeo de sinal: fica acima de todas as telas,
+            sempre centralizada e visível, sem ser cortada pelo layout local. */}
+        <SinalPreviewOverlay />
+      </View>
     </ThemeProvider>
   );
 }

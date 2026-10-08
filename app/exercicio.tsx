@@ -13,7 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
-import { lerMapaProgresso, marcarEtapaConcluida } from '@/src/services/progresso';
+import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import BeckerView from '@/components/BeckerView';
 import AtomoCard from '@/components/AtomoCard';
 import ExercicioVidraria from '@/components/ExercicioVidraria';
@@ -43,8 +43,7 @@ import {
   type AtomoId,
 } from '@/src/data/exercicios';
 
-/** Quantas etapas do módulo 1 já foram concluídas (0, 1 ou 2). */
-const STORAGE_ETAPAS_MODULO_1 = 'librica:exercicio:1:etapasConcluidas';
+/** Quantas etapas do módulo 1 já foram concluídas (0, 1 ou 2) — chave por usuário. */
 
 interface Feedback {
   tipo: 'sucesso' | 'erro';
@@ -90,18 +89,25 @@ export default function ModuloExercicioScreen() {
   const etapa = ETAPAS_ATOMOS_MOLECULAS[Math.min(etapaIndex, ETAPAS_ATOMOS_MOLECULAS.length - 1)];
 
   // Retoma de onde parou: se concluiu o O2, volta direto p/ a água.
-  // Considera o maior entre o AsyncStorage (local) e o Firestore (nuvem,
-  // fonte do perfil) — vale em qualquer aparelho.
+  // Cache local é POR USUÁRIO (storageKeyExercicio com uid): conta nova
+  // no mesmo aparelho começa zerada. Firestore é a fonte do perfil.
   useEffect(() => {
     if (!isModuloAtomos) return;
     setCarregando(true);
+    // Reseta o estado ao trocar de conta para não vazar a sessão anterior.
+    setColocados([]);
+    setFeedback(null);
+    setEtapaTravada(false);
+    setTudoConcluido(false);
     (async () => {
       try {
-        const salvo = await AsyncStorage.getItem(STORAGE_ETAPAS_MODULO_1);
+        const uid = user?.uid ?? null;
+        const chave = storageKeyExercicio('1', uid);
+        const salvo = uid ? await AsyncStorage.getItem(chave) : null;
         let concluidas = salvo === '2' ? 2 : salvo === '1' ? 1 : 0;
         try {
-          if (user?.uid) {
-            const snap = await getDoc(doc(db, 'users', user.uid));
+          if (uid) {
+            const snap = await getDoc(doc(db, 'users', uid));
             if (snap.exists()) {
               const etapas = lerMapaProgresso(snap.data())['1']?.etapas ?? [];
               const tem = (i: number) => etapas.includes(i);
@@ -192,10 +198,12 @@ export default function ModuloExercicioScreen() {
     if (composicaoCorreta(colocados, etapa)) {
       const ehUltima = etapaIndex >= ETAPAS_ATOMOS_MOLECULAS.length - 1;
       try {
-        await AsyncStorage.setItem(
-          STORAGE_ETAPAS_MODULO_1,
-          ehUltima ? '2' : '1',
-        );
+        if (user?.uid) {
+          await AsyncStorage.setItem(
+            storageKeyExercicio('1', user.uid),
+            ehUltima ? '2' : '1',
+          );
+        }
       } catch {
         // Sem persistência o fluxo continua; só não retoma depois.
       }
@@ -234,7 +242,9 @@ export default function ModuloExercicioScreen() {
     // Só zera o estado local p/ treinar de novo — o Firestore (perfil)
     // mantém as etapas já concluídas, sem retirar o progresso.
     try {
-      await AsyncStorage.setItem(STORAGE_ETAPAS_MODULO_1, '0');
+      if (user?.uid) {
+        await AsyncStorage.setItem(storageKeyExercicio('1', user.uid), '0');
+      }
     } catch {
       // ignora
     }
@@ -270,7 +280,6 @@ export default function ModuloExercicioScreen() {
       return (
         <ExercicioSeparacao
           moduloId="6"
-          storageKey="librica:exercicio:6:etapasConcluidas"
           enunciado={ENUNCIADO_SEPARACAO_HET}
           metodos={METODOS_HETEROGENEAS}
           etapas={ETAPAS_SEPARACAO_HET}
@@ -285,7 +294,6 @@ export default function ModuloExercicioScreen() {
       return (
         <ExercicioSeparacao
           moduloId="7"
-          storageKey="librica:exercicio:7:etapasConcluidas"
           enunciado={ENUNCIADO_SEPARACAO_HOM}
           metodos={METODOS_HOMOGENEAS}
           etapas={ETAPAS_SEPARACAO_HOM}

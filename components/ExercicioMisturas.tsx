@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
-import { lerMapaProgresso, marcarEtapaConcluida } from '@/src/services/progresso';
+import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import BeckerMistura from '@/components/BeckerMistura';
 import IngredienteCard from '@/components/IngredienteCard';
 import SegurarParaVer from '@/components/SegurarParaVer';
@@ -30,8 +30,7 @@ import {
   type TipoMistura,
 } from '@/src/data/misturas';
 
-/** Quantas misturas do módulo 4 já foram concluídas (0 a 4). */
-const STORAGE_ETAPAS_MODULO_4 = 'librica:exercicio:4:etapasConcluidas';
+/** Quantas misturas do módulo 4 já foram concluídas (0 a 4) — cache por usuário. */
 
 const COR_FASES = '#512da8';
 const COR_HOMOGENEA = '#00796b';
@@ -72,16 +71,22 @@ export default function ExercicioMisturas() {
     ETAPAS_MISTURAS[Math.min(etapaIndex, ETAPAS_MISTURAS.length - 1)];
   const total = ETAPAS_MISTURAS.length;
 
-  // Retoma de onde parou (maior entre o cache local e o Firestore).
+  // Retoma de onde parou (cache por usuário + Firestore). Conta nova começa zerada.
   useEffect(() => {
     let montado = true;
     setCarregando(true);
+    setColocados([]);
+    setFases(null);
+    setTipo(null);
+    setFeedback(null);
+    setEtapaTravada(false);
+    setTudoConcluido(false);
     (async () => {
       try {
-        const salvo = await AsyncStorage.getItem(STORAGE_ETAPAS_MODULO_4);
+        const uid = user?.uid ?? auth.currentUser?.uid ?? null;
+        const salvo = uid ? await AsyncStorage.getItem(storageKeyExercicio('4', uid)) : null;
         let concluidas = salvo === '4' ? 4 : salvo === '3' ? 3 : salvo === '2' ? 2 : salvo === '1' ? 1 : 0;
         try {
-          const uid = auth.currentUser?.uid;
           if (uid) {
             const snap = await getDoc(doc(db, 'users', uid));
             if (snap.exists()) {
@@ -112,7 +117,7 @@ export default function ExercicioMisturas() {
     return () => {
       montado = false;
     };
-  }, [total]);
+  }, [total, user?.uid]);
 
   const medirBecker = useCallback(() => {
     setTimeout(() => {
@@ -156,7 +161,10 @@ export default function ExercicioMisturas() {
 
   async function persistirAcerto(indice: number, concluidas: number) {
     try {
-      await AsyncStorage.setItem(STORAGE_ETAPAS_MODULO_4, String(concluidas));
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio('4', uid), String(concluidas));
+      }
     } catch {
       // segue sem o cache local
     }
@@ -235,7 +243,10 @@ export default function ExercicioMisturas() {
     // Só zera o estado local p/ treinar de novo — o Firestore (perfil)
     // mantém as etapas já concluídas, sem retirar o progresso.
     try {
-      await AsyncStorage.setItem(STORAGE_ETAPAS_MODULO_4, '0');
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio('4', uid), '0');
+      }
     } catch {
       // ignora
     }

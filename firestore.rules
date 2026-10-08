@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Perfil / progresso: dono lê e escreve o próprio doc.
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if request.auth != null && request.auth.uid == uid;
+      allow delete: if false;
+    }
+
+    // Reserva de nicknames únicos: doc id = nickname em minúsculas.
+    // Leitura pública de 1 doc (get) para checar disponibilidade ainda
+    // no cadastro, antes do login. Sem list (evita enumerar nicknames).
+    match /nicknames/{key} {
+      allow get: if true;
+      allow list: if false;
+      // Cria só se ainda não existe e a reserva é para si mesmo.
+      allow create: if request.auth != null
+        && !exists(/databases/$(database)/documents/nicknames/$(key))
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() >= 3
+        && request.resource.data.nickname.size() <= 20;
+      // Dono pode atualizar (ex: mudar caixa) ou apagar ao trocar.
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

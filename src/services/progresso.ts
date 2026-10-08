@@ -1,4 +1,5 @@
 import { doc, setDoc, arrayUnion } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from '@/src/services/firebase';
 
 // ---------------------------------------------------------------------------
@@ -11,6 +12,30 @@ import { db } from '@/src/services/firebase';
 
 /** Ids dos módulos na ordem exibida no perfil. */
 export const MODULO_IDS = ['1', '2', '3', '4', '5', '6', '7'];
+
+/**
+ * Chave do AsyncStorage para o cache local de um exercício.
+ * SEMPRE por usuário: conta nova no mesmo aparelho começa zerada.
+ * Sem uid cai na chave legada (só para compatibilidade de leitura).
+ */
+export function storageKeyExercicio(moduloId: string, uid?: string | null): string {
+  if (uid) return `librica:exercicio:${moduloId}:${uid}:etapasConcluidas`;
+  return `librica:exercicio:${moduloId}:etapasConcluidas`;
+}
+
+/** Chaves legadas (globais, sem uid) — causa do bug de conta nova herdando. */
+export function chavesLegadasExercicios(): string[] {
+  return MODULO_IDS.map((id) => `librica:exercicio:${id}:etapasConcluidas`);
+}
+
+/** Remove os caches legados para que outra conta não herde progresso local. */
+export async function limparCachesLegadosExercicios(): Promise<void> {
+  try {
+    await AsyncStorage.multiRemove(chavesLegadasExercicios());
+  } catch {
+    // ignora: o Firestore continua sendo a fonte da verdade
+  }
+}
 
 /** Quantas telas/etapas de exercício cada módulo possui. */
 export const TOTAL_ETAPAS_EXERCICIO: Record<string, number> = {

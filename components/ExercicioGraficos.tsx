@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
-import { lerMapaProgresso, marcarEtapaConcluida } from '@/src/services/progresso';
+import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import GraficoCurva from '@/components/GraficoCurva';
 import GraficoSinalCard from '@/components/GraficoSinalCard';
 import {
@@ -29,8 +29,7 @@ import {
   type SinalGraficoId,
 } from '@/src/data/graficos';
 
-/** Quantos gráficos do módulo 5 já foram concluídos (0 a 4). */
-const STORAGE_ETAPAS_MODULO_5 = 'librica:exercicio:5:etapasConcluidas';
+/** Quantos gráficos do módulo 5 já foram concluídos (0 a 4) — cache por usuário. */
 
 interface Feedback {
   tipo: 'sucesso' | 'erro';
@@ -68,16 +67,20 @@ export default function ExercicioGraficos() {
   const sinaisEstados = SINAIS_GRAFICOS.slice(0, 3);
   const sinaisTipos = SINAIS_GRAFICOS.slice(3);
 
-  // Retoma de onde parou (maior entre o cache local e o Firestore).
+  // Retoma de onde parou (cache por usuário + Firestore). Conta nova começa zerada.
   useEffect(() => {
     let montado = true;
     setCarregando(true);
+    setPreenchidos({});
+    setFeedback(null);
+    setEtapaTravada(false);
+    setTudoConcluido(false);
     (async () => {
       try {
-        const salvo = await AsyncStorage.getItem(STORAGE_ETAPAS_MODULO_5);
+        const uid = user?.uid ?? auth.currentUser?.uid ?? null;
+        const salvo = uid ? await AsyncStorage.getItem(storageKeyExercicio('5', uid)) : null;
         let concluidas = salvo === '4' ? 4 : salvo === '3' ? 3 : salvo === '2' ? 2 : salvo === '1' ? 1 : 0;
         try {
-          const uid = auth.currentUser?.uid;
           if (uid) {
             const snap = await getDoc(doc(db, 'users', uid));
             if (snap.exists()) {
@@ -108,7 +111,7 @@ export default function ExercicioGraficos() {
     return () => {
       montado = false;
     };
-  }, [total]);
+  }, [total, user?.uid]);
 
   const medirSlots = useCallback(() => {
     setTimeout(() => {
@@ -169,7 +172,10 @@ export default function ExercicioGraficos() {
 
   async function persistirAcerto(indice: number, concluidas: number) {
     try {
-      await AsyncStorage.setItem(STORAGE_ETAPAS_MODULO_5, String(concluidas));
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio('5', uid), String(concluidas));
+      }
     } catch {
       // segue sem o cache local
     }
@@ -219,7 +225,10 @@ export default function ExercicioGraficos() {
     // Só zera o estado local p/ treinar de novo — o Firestore (perfil)
     // mantém as etapas já concluídas, sem retirar o progresso.
     try {
-      await AsyncStorage.setItem(STORAGE_ETAPAS_MODULO_5, '0');
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio('5', uid), '0');
+      }
     } catch {
       // ignora
     }

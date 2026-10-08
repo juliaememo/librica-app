@@ -4,6 +4,9 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../components/AuthContext';
 
+import { isEmailFormatoValido } from '../../components/AuthContext';
+import { validarFormatoNickname } from '@/src/services/nickname';
+
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
@@ -27,6 +30,17 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (!isEmailFormatoValido(email)) {
+      Alert.alert('E-mail inválido', 'Digite um e-mail válido, ex: nome@exemplo.com.');
+      return;
+    }
+
+    const erroNickname = validarFormatoNickname(username.trim());
+    if (erroNickname) {
+      Alert.alert('Nickname inválido', erroNickname);
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert('Erro', 'As senhas não coincidem.');
       return;
@@ -40,10 +54,17 @@ export default function RegisterScreen() {
     try {
       setLoading(true);
       // Passando todos os parâmetros exigidos pelo AuthContext
-      await register(email, password, displayName, surname, username);
-      router.replace('/(tabs)');
-    } catch (error: any) {
-      Alert.alert('Erro no cadastro', error.message);
+      await register(email, password, displayName.trim(), surname.trim(), username.trim());
+      // Verificação acontece uma única vez aqui no cadastro: enviamos o link
+      // e levamos para a tela de confirmação em vez de entrar direto.
+      Alert.alert(
+        'Verifique seu e-mail',
+        'Enviamos um link de confirmação para o seu e-mail. Abra o link para validar sua conta.',
+      );
+      router.replace('/auth/verify-email');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Não foi possível concluir o cadastro.';
+      Alert.alert('Erro no cadastro', message);
     } finally {
       setLoading(false);
     }

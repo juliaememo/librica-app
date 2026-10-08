@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
-import { lerMapaProgresso, marcarEtapaConcluida } from '@/src/services/progresso';
+import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import CenaDesenho from '@/components/CenaDesenho';
 import MetodoCard from '@/components/MetodoCard';
 import { embaralhar } from '@/src/utils/embaralhar';
@@ -29,7 +29,6 @@ import {
 
 interface ExercicioSeparacaoProps {
   moduloId: string;
-  storageKey: string;
   enunciado: string;
   metodos: MetodoSeparacao[];
   etapas: EtapaSeparacao[];
@@ -58,7 +57,6 @@ interface EspacoRect {
  */
 export default function ExercicioSeparacao({
   moduloId,
-  storageKey,
   enunciado,
   metodos,
   etapas,
@@ -115,18 +113,24 @@ export default function ExercicioSeparacao({
     return [];
   }
 
-  // Começo (telas embaralhadas) ou retomada das que faltam (também
-  // embaralhadas). Só as restantes entram na fila.
+  // Começo ou retomada por usuário: conta nova no mesmo aparelho começa zerada.
+  // Cache local (por uid) + Firestore (fonte do perfil). Sem uid, sem cache.
   useEffect(() => {
     let montado = true;
     setCarregando(true);
+    setFila([]);
+    setDone([]);
+    setPreenchidos({});
+    setFeedback(null);
+    setEtapaTravada(false);
+    setTudoConcluido(false);
     (async () => {
       try {
-        let concluidos = interpretarSalvos(
-          await AsyncStorage.getItem(storageKey),
-        );
+        const uid = user?.uid ?? auth.currentUser?.uid ?? null;
+        let concluidos = uid
+          ? interpretarSalvos(await AsyncStorage.getItem(storageKeyExercicio(moduloId, uid)))
+          : [];
         try {
-          const uid = auth.currentUser?.uid;
           if (uid) {
             const snap = await getDoc(doc(db, 'users', uid));
             if (snap.exists()) {
@@ -158,7 +162,7 @@ export default function ExercicioSeparacao({
       montado = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [moduloId, user?.uid]);
 
   const medirEspacos = useCallback(() => {
     setTimeout(() => {
@@ -206,7 +210,10 @@ export default function ExercicioSeparacao({
 
   async function persistirAcerto(indice: number, novosConcluidos: number[]) {
     try {
-      await AsyncStorage.setItem(storageKey, JSON.stringify(novosConcluidos));
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio(moduloId, uid), JSON.stringify(novosConcluidos));
+      }
     } catch {
       // segue sem o cache local
     }
@@ -286,7 +293,10 @@ export default function ExercicioSeparacao({
     // mantém as etapas já concluídas, sem retirar o progresso.
     // Reembaralha telas e métodos ao recomeçar.
     try {
-      await AsyncStorage.setItem(storageKey, JSON.stringify([]));
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio(moduloId, uid), JSON.stringify([]));
+      }
     } catch {
       // ignora
     }

@@ -14,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
-import { lerMapaProgresso, marcarEtapaConcluida } from '@/src/services/progresso';
+import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import VidrariaCard from '@/components/VidrariaCard';
 import {
   ENUNCIADO_VIDRARIAS,
@@ -23,8 +23,7 @@ import {
   type Vidraria,
 } from '@/src/data/vidrarias';
 
-/** Índices (estáveis) das vidrarias já acertadas — ordem das telas embaralha. */
-const STORAGE_ETAPAS_MODULO_2 = 'librica:exercicio:2:etapasConcluidas';
+/** Índices (estáveis) das vidrarias já acertadas — cache local é por usuário. */
 
 const TODOS_INDICES = VIDRIAS_DATA.map((_, i) => i);
 
@@ -50,34 +49,42 @@ export default function ExercicioVidraria() {
   const total = VIDRIAS_DATA.length;
   const alvo: Vidraria | null = fila.length > 0 ? VIDRIAS_DATA[fila[0]] : null;
 
-  // Carrega UMA única vez por montagem: união do cache local + Firestore.
-  // Só as restantes entram na fila (embaralhadas); as concluídas ficam de fora.
-  // (Efeito sem reexecuções: antes ele rodava de novo quando o uid resolvia,
-  // reembaralhando a fila no meio da sessão.)
+  // Carrega por usuário: conta nova no mesmo aparelho começa zerada.
+  // Cache local (por uid) + Firestore (fonte do perfil). Sem uid, sem cache.
   useEffect(() => {
     let montado = true;
     setCarregando(true);
+    // Reseta ao trocar de conta para não vazar a sessão anterior.
+    setFila([]);
+    setDone([]);
+    setFeedback(null);
+    setEtapaTravada(false);
+    setTudoConcluido(false);
+    setSelecionada(null);
     (async () => {
       try {
+        const uid = user?.uid ?? auth.currentUser?.uid ?? null;
         let concluidos: number[] = [];
         try {
-          const salvo = await AsyncStorage.getItem(STORAGE_ETAPAS_MODULO_2);
-          if (salvo) {
-            const lista = JSON.parse(salvo) as unknown;
-            if (Array.isArray(lista)) {
-              concluidos = lista.filter(
-                (n): n is number =>
-                  Number.isInteger(n) && n >= 0 && n < VIDRIAS_DATA.length,
-              );
+          if (uid) {
+            const salvo = await AsyncStorage.getItem(storageKeyExercicio('2', uid));
+            if (salvo) {
+              const lista = JSON.parse(salvo) as unknown;
+              if (Array.isArray(lista)) {
+                concluidos = lista.filter(
+                  (n): n is number =>
+                    Number.isInteger(n) && n >= 0 && n < VIDRIAS_DATA.length,
+                );
+              }
             }
           }
         } catch {
           // segue sem o cache local
         }
         try {
-          const uid = auth.currentUser?.uid;
-          if (uid) {
-            const snap = await getDoc(doc(db, 'users', uid));
+          const uidRemoto = user?.uid ?? auth.currentUser?.uid;
+          if (uidRemoto) {
+            const snap = await getDoc(doc(db, 'users', uidRemoto));
             if (snap.exists()) {
               const etapas = lerMapaProgresso(snap.data())['2']?.etapas ?? [];
               const validos = etapas.filter(
@@ -106,7 +113,7 @@ export default function ExercicioVidraria() {
     return () => {
       montado = false;
     };
-  }, []);
+  }, [user?.uid]);
 
   function handleSelect(vidraria: Vidraria) {
     if (etapaTravada || tudoConcluido) return;
@@ -117,10 +124,13 @@ export default function ExercicioVidraria() {
 
   async function persistirAcerto(indice: number, novosConcluidos: number[]) {
     try {
-      await AsyncStorage.setItem(
-        STORAGE_ETAPAS_MODULO_2,
-        JSON.stringify(novosConcluidos),
-      );
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(
+          storageKeyExercicio('2', uid),
+          JSON.stringify(novosConcluidos),
+        );
+      }
     } catch {
       // segue sem o cache local
     }
@@ -177,7 +187,10 @@ export default function ExercicioVidraria() {
 
   async function handleRefazer() {
     try {
-      await AsyncStorage.setItem(STORAGE_ETAPAS_MODULO_2, JSON.stringify([]));
+      const uid = user?.uid ?? auth.currentUser?.uid;
+      if (uid) {
+        await AsyncStorage.setItem(storageKeyExercicio('2', uid), JSON.stringify([]));
+      }
     } catch {
       // ignora
     }
