@@ -111,7 +111,7 @@ export default function SinalVideoModal({
         <View style={[styles.box, { borderColor: corTema }]}>
           <View style={styles.header}>
             <FontAwesome name="play-circle" size={16} color={corTema} />
-            <Text style={[styles.titulo, { color: corTema }]} numberOfLines={1}>
+            <Text style={[styles.titulo, { color: corTema }]} numberOfLines={2}>
               Sinal: {titulo}
             </Text>
             <Pressable
@@ -129,7 +129,7 @@ export default function SinalVideoModal({
               <FontAwesome name="video-camera" size={28} color="#8c7b7d" />
               <Text style={styles.estadoTexto}>Vídeo ainda não enviado</Text>
               <Text style={styles.estadoDica}>
-                Suba o .mp4 em hosting-public/videos e rode o deploy
+                Suba o .mp4 em public/videos e rode o deploy
               </Text>
             </View>
           ) : (

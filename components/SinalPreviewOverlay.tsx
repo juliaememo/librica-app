@@ -20,9 +20,10 @@ interface OverlayPlayerProps {
 }
 
 /**
- * Player da prévia global. `contain` (em vez de `cover`) garante que o
- * vídeo apareça completo, sem corte, seja vertical (Shorts 9:16) ou
- * horizontal — sobre fundo preto com letterbox.
+ * Player da prévia global. `cover` (em vez de `contain`) preenche todo o
+ * espaço do cartão, sem barras pretas — mesmo que o vídeo seja de
+ * qualidade mais baixa ou de proporção diferente, ele ocupa tudo
+ * (cortando o excesso nas bordas, se preciso).
  */
 function OverlayPlayer({ uri, altura }: OverlayPlayerProps) {
   const [pronto, setPronto] = useState<boolean>(false);
@@ -78,7 +79,7 @@ function OverlayPlayer({ uri, altura }: OverlayPlayerProps) {
       <VideoView
         player={player}
         style={styles.video}
-        contentFit="contain"
+        contentFit="cover"
         allowsFullscreen={false}
         allowsPictureInPicture={false}
         nativeControls={false}
@@ -170,7 +171,7 @@ export default function SinalPreviewOverlay() {
       >
         <View style={styles.tituloBar}>
           <FontAwesome name="play-circle" size={14} color={previa.corTema} />
-          <Text style={[styles.titulo, { color: previa.corTema }]} numberOfLines={1}>
+          <Text style={[styles.titulo, { color: previa.corTema }]} numberOfLines={2}>
             {previa.titulo}
           </Text>
         </View>

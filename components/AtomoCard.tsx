@@ -151,7 +151,7 @@ export default function AtomoCard({
             {atomo.simbolo}
           </Text>
         </View>
-        <Text style={[styles.cardTitulo, { color: atomo.corTema }]} numberOfLines={1}>
+        <Text style={[styles.cardTitulo, { color: atomo.corTema }]} numberOfLines={3}>
           {atomo.titulo}
         </Text>
         <Text style={styles.cardDica} numberOfLines={1}>
@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     textAlign: 'center',
+    lineHeight: 16,
   },
   cardDica: {
     fontSize: 10,

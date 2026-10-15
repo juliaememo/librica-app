@@ -39,6 +39,16 @@
       "@react-native-firebase/auth",
       "@react-native-firebase/crashlytics",
       [
+        "expo-navigation-bar",
+        {
+          "position": "absolute",
+          "visibility": "hidden",
+          "behavior": "overlay-swipe",
+          "backgroundColor": "#fbf9f500",
+          "barStyle": "dark"
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "ios": {

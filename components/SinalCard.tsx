@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { Entypo, FontAwesome5, FontAwesome6, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text, View } from '@/components/Themed';
 import SinalHostingPopup from '@/components/SinalHostingPopup';
 import { getSinalHostingUrl } from '@/src/services/sinaisHosting';
@@ -15,9 +15,9 @@ interface SinalCardProps {
 }
 
 /**
- * Card de sinal igual ao do Dicionário: toque curto dispara onTap,
- * segurar abre a prévia do vídeo (mesmo vídeo do Hosting) e
- * soltar fecha na hora.
+ * Card de sinal do Dicionário: só segurar abre a prévia do vídeo
+ * (mesmo vídeo do Hosting) e soltar fecha na hora.
+ * Toque simples não faz nada (`onTap` é opcional e não é usado).
  */
 export default function SinalCard({ sinal, lado, abreParaBaixo, onTap }: SinalCardProps) {
   const [mostrarPreview, setMostrarPreview] = useState<boolean>(false);
@@ -67,6 +67,30 @@ export default function SinalCard({ sinal, lado, abreParaBaixo, onTap }: SinalCa
 
   const ativo = mostrarPreview;
 
+  function renderIcone() {
+    if (sinal.simbolo) {
+      return (
+        <Text style={[styles.simboloTexto, { color: sinal.corTema, fontSize: sinal.tamanhoSimbolo ?? 32 }]}>
+          {sinal.simbolo}
+        </Text>
+      );
+    }
+    const nome = sinal.icone as any;
+    const cor = sinal.corTema;
+    switch (sinal.iconeLib) {
+      case 'fa6':
+        return <FontAwesome6 name={nome} size={36} color={cor} />;
+      case 'material':
+        return <MaterialCommunityIcons name={nome} size={36} color={cor} />;
+      case 'ionicons':
+        return <Ionicons name={nome} size={36} color={cor} />;
+      case 'entypo':
+        return <Entypo name={nome} size={36} color={cor} />;
+      default:
+        return <FontAwesome5 name={nome} size={36} color={cor} />;
+    }
+  }
+
   return (
     <Pressable
       style={[styles.card, { borderColor: sinal.corTema }, ativo && styles.cardAtivo]}
@@ -85,9 +109,9 @@ export default function SinalCard({ sinal, lado, abreParaBaixo, onTap }: SinalCa
             style={[styles.cardInner, (pressed || ativo) && styles.cardInnerPressed]}
           >
             <View style={[styles.iconBox, { backgroundColor: '#fff', borderColor: sinal.corTema }]}>
-              <FontAwesome5 name={sinal.icone as any} size={36} color={sinal.corTema} />
+              {renderIcone()}
             </View>
-            <Text style={[styles.cardTitle, { color: sinal.corTema }]} numberOfLines={1}>
+            <Text style={[styles.cardTitle, { color: sinal.corTema }]} numberOfLines={3}>
               {sinal.titulo}
             </Text>
           </View>
@@ -109,7 +133,7 @@ export default function SinalCard({ sinal, lado, abreParaBaixo, onTap }: SinalCa
 const styles = StyleSheet.create({
   card: {
     width: '48%',
-    aspectRatio: 1,
+    minHeight: 160,
     borderWidth: 1.5,
     borderRadius: 16,
     marginBottom: 16,
@@ -146,8 +170,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'center',
+    lineHeight: 18,
+  },
+  simboloTexto: {
+    fontSize: 32,
+    fontWeight: 'bold',
   },
 });

@@ -18,16 +18,21 @@ const firebaseConfig = {
 // Inicializa o Firebase (evitando duplicar instâncias)
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Inicializa a Autenticação com AsyncStorage de forma segura para o React Native/Expo
+// Inicializa a Autenticação com persistência no AsyncStorage.
+// ATENÇÃO: getAuth() nunca joga erro, então o try/catch antigo caía sempre
+// no getAuth sem persistência (sessão só em memória = login perdido ao
+// fechar o app). O correto no React Native/Expo é SEMPRE initializeAuth
+// com getReactNativePersistence, caindo para getAuth só se já inicializado
+// (hot reload).
 let authInstance;
 try {
-  // Tenta recuperar a instância se já existir
-  authInstance = getAuth(app);
-} catch (e) {
-  // Se não existir, inicializa com a persistência do AsyncStorage
   authInstance = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
   });
+} catch (e) {
+  // auth/already-initialized (ex: Fast Refresh): reutiliza a instância,
+  // que já foi criada com persistência acima.
+  authInstance = getAuth(app);
 }
 
 // Inicializa o Banco de Dados (Firestore)

@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'; // Importação c
 import YoutubeIframe from 'react-native-youtube-iframe';
 import SinalCard from '@/components/SinalCard';
 import { getSinaisDoModulo } from '@/src/data/sinais';
+import { SINAIS_SECRETOS } from '@/src/data/modulo-secreto';
 import { useAuth } from '@/components/AuthContext';
 import { marcarVideoVisto } from '@/src/services/progresso';
 
@@ -20,8 +21,9 @@ export default function ModuloVideoScreen() {
   // Módulo secreto: página só de vídeo, sem botão de exercício.
   const soVideo = semExercicio === '1';
 
-  // Sinais relacionados a este módulo (mesmos vídeos do Dicionário).
-  const sinaisRelacionados = getSinaisDoModulo(id);
+  // Pasta secreta (id '8'): usa lista própria `SINAIS_SECRETOS`, isolada do
+  // Dicionário e dos módulos 1-7. Outros módulos usam `getSinaisDoModulo(id)`.
+  const sinaisRelacionados = id === '8' ? SINAIS_SECRETOS : getSinaisDoModulo(id);
 
   // Parte 1 do progresso (50%): vídeo assistido até o fim.
   // O módulo secreto não conta progresso.

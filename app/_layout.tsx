@@ -3,7 +3,9 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
+import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import SplashScreenComponent from './splash';
@@ -64,6 +66,33 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
+  // Modo imersivo (Android): esconde a barra nativa de navegação
+  // (voltar, home, recentes) e deixa o menu do app colado na borda.
+  // Comportamento "sticky-immersive": se o usuário arrastar da borda,
+  // a barra aparece temporariamente e some de novo após 3s.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    NavigationBar.setVisibilityAsync('hidden').catch(() => {
+      // Ignora falha (ex: navegação por gestos, onde a API não tem efeito)
+    });
+
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const subscription = NavigationBar.addVisibilityListener(({ visibility }) => {
+      if (visibility === 'visible') {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          NavigationBar.setVisibilityAsync('hidden').catch(() => {});
+        }, 3000);
+      }
+    });
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+      subscription.remove();
+    };
+  }, []);
+
   useEffect(() => {
     if (loading) return;
 
@@ -96,7 +125,10 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: '#fbf9f5' }}>
+        {/* Barra de status sempre visível e escura (fundo claro do app).
+            Assim o topo nunca "pisca" quando a barra nativa reaparece. */}
+        <StatusBar style="dark" />
         <Stack>
           <Stack.Screen name="SplashScreen" options={{ headerShown: false }} />
           <Stack.Screen name="auth/login" options={{ headerShown: false }} />
