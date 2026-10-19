@@ -121,11 +121,12 @@ export default function SinalPreviewOverlay() {
 
   if (!previa) return null;
 
-  // Compacta: ~150px de largura (antes eram 190–300).
-  const larguraCard = Math.min(150, Math.floor(width - 24));
+  // Maior que dois quadrados de ícone juntos (2 × 64 = 128px), para o
+  // sinal ficar bem legível.
+  const larguraCard = Math.min(210, Math.floor(width - 24));
   const alturaVideo = Math.round((larguraCard * 16) / 9);
   // Título + paddings + vídeo (estimativa p/ o 1º frame; depois usa a real).
-  const alturaEstimada = alturaVideo + 46;
+  const alturaEstimada = alturaVideo + 48;
   const alturaUsada = alturaReal ?? alturaEstimada;
   const lado = previa.lado ?? 'direita';
   const abreParaBaixo = previa.abreParaBaixo ?? false;
@@ -169,21 +170,25 @@ export default function SinalPreviewOverlay() {
           { width: larguraCard, left: esquerda, top: topo, borderColor: previa.corTema },
         ]}
       >
-        <View style={styles.tituloBar}>
-          <FontAwesome name="play-circle" size={14} color={previa.corTema} />
-          <Text style={[styles.titulo, { color: previa.corTema }]} numberOfLines={2}>
-            {previa.titulo}
-          </Text>
-        </View>
-
-        {!previa.videoUrl ? (
-          <View style={[styles.estadoBox, { height: alturaVideo }]}>
-            <FontAwesome name="video-camera" size={22} color="#8c7b7d" />
-            <Text style={styles.estadoTexto}>Vídeo ainda não enviado</Text>
+        {/* Conteúdo rente à borda: a moldura colorida (borderColor do card)
+            fica POR FORA do vídeo, sem comer nem recortar a imagem. */}
+        <View style={styles.conteudo}>
+          <View style={styles.tituloBar}>
+            <FontAwesome name="play-circle" size={14} color={previa.corTema} />
+            <Text style={[styles.titulo, { color: previa.corTema }]} numberOfLines={2}>
+              {previa.titulo}
+            </Text>
           </View>
-        ) : (
-          <OverlayPlayer key={previa.videoUrl} uri={previa.videoUrl} altura={alturaVideo} />
-        )}
+
+          {!previa.videoUrl ? (
+            <View style={[styles.estadoBox, { height: alturaVideo }]}>
+              <FontAwesome name="video-camera" size={22} color="#8c7b7d" />
+              <Text style={styles.estadoTexto}>Vídeo ainda não enviado</Text>
+            </View>
+          ) : (
+            <OverlayPlayer key={previa.videoUrl} uri={previa.videoUrl} altura={alturaVideo} />
+          )}
+        </View>
       </View>
     </View>
   );
@@ -200,17 +205,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1.5,
     borderRadius: 12,
-    padding: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
   },
+  // Recorta o vídeo no raio de dentro (concêntrico ao card): assim a borda
+  // colorida do card fica fora da imagem, sem padding "comendo" o vídeo.
+  conteudo: {
+    borderRadius: 10.5,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+  },
   tituloBar: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 6,
+    paddingHorizontal: 8,
+    paddingTop: 8,
+    paddingBottom: 6,
   },
   titulo: {
     fontSize: 12,
@@ -219,8 +232,6 @@ const styles = StyleSheet.create({
   },
   videoBox: {
     width: '100%',
-    borderRadius: 10,
-    overflow: 'hidden',
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
@@ -239,8 +250,6 @@ const styles = StyleSheet.create({
   erroOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: '#fff',
-    borderRadius: 10,
-    overflow: 'hidden',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
@@ -248,7 +257,6 @@ const styles = StyleSheet.create({
   },
   estadoBox: {
     width: '100%',
-    borderRadius: 10,
     backgroundColor: '#f3ece7',
     justifyContent: 'center',
     alignItems: 'center',

@@ -15,7 +15,7 @@ interface SinalHostingPopupProps {
   abreParaBaixo?: boolean;
 }
 
-export const POPUP_LARGURA = 150;
+export const POPUP_LARGURA = 210;
 
 /**
  * Ponte de compatibilidade: os cards continuam renderizando
