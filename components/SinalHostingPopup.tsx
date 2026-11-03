@@ -18,8 +18,8 @@ interface SinalHostingPopupProps {
 export const POPUP_LARGURA = 210;
 
 /**
- * Ponte de compatibilidade: os cards continuam renderizando
- * `<SinalHostingPopup>` condicionalmente ao segurar. Aqui nada visível é
+ * Ponte de compatibilidade: os cards renderizam `<SinalHostingPopup>`
+ * enquanto a prévia daquele sinal está aberta. Aqui nada visível é
  * desenhado — só um marcador invisível do tamanho do card para medir onde
  * ele está na tela (`measureInWindow`) e publicar no store global. O
  * `SinalPreviewOverlay` da raiz desenha a prévia pequena ao lado do ícone,

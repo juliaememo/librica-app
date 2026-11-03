@@ -11,6 +11,24 @@ export class NicknameEmUsoError extends Error {
   }
 }
 
+/**
+ * A unicidade não pôde ser verificada (ex: regras do Firestore não
+ * publicadas). Nunca deve ser ignorado: salvar sem a reserva é o que
+ * permitia dois usuários ficarem com o mesmo nickname.
+ */
+export class NicknameValidacaoError extends Error {
+  constructor() {
+    super('Não foi possível verificar o nickname agora. Tente novamente em instantes.');
+    this.name = 'NicknameValidacaoError';
+  }
+}
+
+/** Regras ausentes/negadas no Firestore. */
+export function ehErroPermissaoNickname(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  return (error as { code?: string }).code === 'permission-denied';
+}
+
 /** Chave canônica: trim + minúsculas. "Leo" e "leo" disputam a mesma reserva. */
 export function nicknameKey(nickname: string): string {
   return nickname.trim().toLowerCase();
@@ -75,6 +93,44 @@ export async function reservarNicknameCadastro(
       },
       { merge: true },
     );
+  });
+}
+
+/**
+ * Garante que o nickname atual tenha uma reserva (contas criadas antes da
+ * coleção 'nicknames' não têm). Devolve `false` se outra conta já reservou.
+ * Roda ao entrar no app/perfil para "curar" os dados antigos aos poucos.
+ */
+export async function garantirReservaNickname(
+  uid: string,
+  nickname: string,
+): Promise<boolean> {
+  const key = nicknameKey(nickname);
+  if (!key) return false;
+  const userRef = doc(db, 'users', uid);
+  const reservaRef = doc(db, 'nicknames', key);
+  return runTransaction(db, async (tx) => {
+    const reserva = await tx.get(reservaRef);
+    if (reserva.exists()) {
+      const dados = reserva.data() as Partial<ReservaNicknameDoc>;
+      if (dados.uid !== uid) return false;
+      return true;
+    }
+    tx.set(reservaRef, {
+      uid,
+      nickname: nickname.trim(),
+      createdAt: new Date().toISOString(),
+    });
+    tx.set(
+      userRef,
+      {
+        uid,
+        nickname: nickname.trim(),
+        nicknameLower: key,
+      },
+      { merge: true },
+    );
+    return true;
   });
 }
 

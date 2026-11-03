@@ -10,11 +10,14 @@ import {
   reload,
   User,
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/src/services/firebase';
 import { limparCachesLegadosExercicios } from '@/src/services/progresso';
 import {
   NicknameEmUsoError,
+  NicknameValidacaoError,
+  ehErroPermissaoNickname,
+  garantirReservaNickname,
   isNicknameDisponivel,
   nicknameKey,
   reservarNicknameCadastro,
@@ -121,9 +124,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // 2b. Reserva atômica do nickname em 'nicknames/{minusculo}'.
       // Se outra pessoa registrou o mesmo nickname entre a checagem e agora,
       // a transação falha e desfazemos a conta para liberar o e-mail.
-      // Se as regras ainda não foram publicadas (permission-denied), segue
-      // sem reservar para não travar o cadastro; a unicidade passa a valer
-      // após `firebase deploy --only firestore:rules`.
+      // Sem as regras publicadas não existe como garantir unicidade: nesse
+      // caso a conta também é desfeita (nunca salvar nickname duplicado).
       try {
         await reservarNicknameCadastro(firebaseUser.uid, nicknameLimpo);
       } catch (reservaError: unknown) {
@@ -131,14 +133,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await deleteUser(firebaseUser).catch(() => undefined);
           throw reservaError;
         }
-        const firestoreCode = (reservaError as { code?: string }).code ?? '';
-        if (firestoreCode === 'permission-denied') {
-          console.warn(
-            'Regras do Firestore sem coleção nicknames; cadastro segue sem reserva. Publique firestore.rules.',
+        if (ehErroPermissaoNickname(reservaError)) {
+          console.error(
+            'Nickname não verificado: publique firestore.rules (firebase deploy --only firestore:rules).',
           );
-        } else {
-          throw reservaError;
+          await deleteUser(firebaseUser).catch(() => undefined);
+          throw new NicknameValidacaoError();
         }
+        throw reservaError;
       }
 
       // 3. Envia o e-mail de confirmação UMA única vez (só no cadastro).
@@ -178,6 +180,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           },
           { merge: true },
         ).catch(() => undefined);
+      }
+      // Contas antigas não têm reserva em 'nicknames'; garante agora para
+      // que outro usuário não consiga editar o perfil para este nickname.
+      try {
+        const snap = await getDoc(doc(db, 'users', credential.user.uid));
+        const nick = snap.exists() ? snap.data().nickname : '';
+        if (typeof nick === 'string' && nick.trim()) {
+          const reservado = await garantirReservaNickname(credential.user.uid, nick);
+          if (!reservado) {
+            console.warn(`Nickname "${nick}" já reservado por outra conta.`);
+          }
+        }
+      } catch (error: unknown) {
+        console.warn('Não foi possível garantir a reserva do nickname:', error);
       }
       return { emailVerified: verified };
     } catch (error: unknown) {

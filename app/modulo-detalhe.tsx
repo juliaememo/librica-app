@@ -1,10 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { FontAwesome } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context'; // Importação correta
 import YoutubeIframe from 'react-native-youtube-iframe';
 import SinalCard from '@/components/SinalCard';
+import { esconderPreviewSinal } from '@/src/services/sinalPreviewStore';
 import { getSinaisDoModulo } from '@/src/data/sinais';
 import { SINAIS_SECRETOS } from '@/src/data/modulo-secreto';
 import { useAuth } from '@/components/AuthContext';
@@ -14,6 +16,13 @@ export default function ModuloVideoScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const { id, titulo, videoId, semExercicio } = useLocalSearchParams<{ id: string, titulo: string, videoId: string, semExercicio?: string }>();
+
+  // Ao sair da tela, fecha a prévia para ela não ficar por cima das outras.
+  useFocusEffect(
+    useCallback(() => {
+      return () => esconderPreviewSinal();
+    }, []),
+  );
 
   // Se o videoId não vier dos parâmetros, usa um padrão de segurança
   const safeVideoId = videoId || 'dQw4w9WgXcQ';
@@ -77,7 +86,7 @@ export default function ModuloVideoScreen() {
 
           <View style={styles.sinaisSection}>
             <Text style={styles.sinaisTitle}>Sinais deste módulo em Libras</Text>
-            <Text style={styles.sinaisHint}>Segure um sinal p/ ver a prévia • solte p/ fechar</Text>
+            <Text style={styles.sinaisHint}>Toque em um sinal p/ ver a prévia • toque de novo p/ fechar</Text>
             <View style={styles.sinaisGrid}>
               {sinaisRelacionados.map((sinal, index) => (
                 <SinalCard

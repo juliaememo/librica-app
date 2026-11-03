@@ -156,3 +156,48 @@ export function getSinaisDoModulo(moduloId: string | undefined): Sinal[] {
     .map((sid) => sinaisData.find((s) => s.id === sid))
     .filter((s): s is Sinal => !!s);
 }
+
+/**
+ * Normaliza texto para busca: sem acentos, minúsculo, sem espaços nas pontas
+ * e com subscritos químicos (H₂O) convertidos para dígitos (H2O).
+ */
+export function normalizarBusca(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[₀-₉]/g, (digito) => String(digito.charCodeAt(0) - 0x2080))
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Busca sinais pelo nome conforme o usuário digita, ignorando acentos e
+ * maiúsculas. Casa o começo do título ou de qualquer palavra dele (assim
+ * "ar" acha Ar, Área, Areia e Argônio, sem trazer "Aspirar"/"Parcela").
+ * Ex.: "ebuli" -> Ponto de ebulição; "h2o" -> H₂O.
+ */
+export function buscarSinais(termo: string): Sinal[] {
+  const busca = normalizarBusca(termo);
+  if (!busca) return [];
+
+  const encontrados = sinaisData
+    .map((sinal) => {
+      const titulo = normalizarBusca(sinal.titulo);
+      const palavras = titulo.split(/[\s()\-–—/]+/).filter(Boolean);
+      const simbolo = sinal.simbolo ? normalizarBusca(sinal.simbolo) : '';
+      let relevancia = -1;
+      if (titulo === busca || simbolo === busca) relevancia = 0;
+      else if (titulo.startsWith(busca) || palavras.some((palavra) => palavra.startsWith(busca))) {
+        relevancia = 1;
+      } else if (simbolo.startsWith(busca)) {
+        relevancia = 2;
+      }
+      return { sinal, relevancia, titulo };
+    })
+    .filter((item) => item.relevancia >= 0);
+
+  encontrados.sort(
+    (a, b) => a.relevancia - b.relevancia || a.titulo.localeCompare(b.titulo, 'pt-BR'),
+  );
+  return encontrados.map((item) => item.sinal);
+}

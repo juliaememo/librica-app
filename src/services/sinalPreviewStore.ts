@@ -1,5 +1,7 @@
+import { useSyncExternalStore } from 'react';
+
 /**
- * Store global da prévia de vídeo de sinal (segurar para ver).
+ * Store global da prévia de vídeo de sinal (toque para abrir/fechar).
  *
  * Motivo: a prévia era renderizada como filha absoluta de cada card, então
  * ficava presa ao layout local — exigia rolar a tela e era cortada por
@@ -40,16 +42,16 @@ function notificar(): void {
   ouvintes.forEach((ouvinte) => ouvinte());
 }
 
-/** Publica uma prévia (chamado ao segurar o card por ~180ms). */
+/** Publica uma prévia (chamado no toque do card ou ao montar a prévia). */
 export function mostrarPreviewSinal(payload: SinalPreviewPayload): void {
   atual = payload;
   notificar();
 }
 
 /**
- * Esconde a prévia (chamado ao soltar o dedo / desmontar o card).
- * O `tituloEsperado` evita que a limpeza de um card antigo apague a
- * prévia de um card novo numa troca rápida de dedo.
+ * Esconde a prévia (chamado no 2º toque, ao desmontar o card ou ao sair
+ * da tela). O `tituloEsperado` evita que a limpeza de um card antigo
+ * apague a prévia de um card novo numa troca rápida de sinal.
  */
 export function esconderPreviewSinal(tituloEsperado?: string): void {
   if (tituloEsperado !== undefined && atual?.titulo !== tituloEsperado) {
@@ -69,4 +71,12 @@ export function assinarPreviewSinal(ouvinte: PreviewListener): () => void {
 
 export function lerPreviewSinal(): SinalPreviewPayload | null {
   return atual;
+}
+
+/**
+ * Hook com a prévia aberta no momento (ou `null`). Os cards usam isto para
+ * saber se são o sinal ativo e para garantir que só uma prévia fique aberta.
+ */
+export function usePreviewSinal(): SinalPreviewPayload | null {
+  return useSyncExternalStore(assinarPreviewSinal, lerPreviewSinal, lerPreviewSinal);
 }

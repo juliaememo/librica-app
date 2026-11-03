@@ -12,6 +12,9 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { calcularProgressoModulos, calcularProgressoTotal } from '@/src/services/progresso';
 import {
   NicknameEmUsoError,
+  NicknameValidacaoError,
+  ehErroPermissaoNickname,
+  garantirReservaNickname,
   nicknameKey,
   trocarNickname,
   validarFormatoNickname,
@@ -88,6 +91,20 @@ export default function PerfilScreen() {
               setDraftNome(nomeAtual);
               setDraftSobrenome(sobrenomeAtual);
               setDraftNickname(nicknameAtual);
+
+              // Contas antigas podem não ter reserva em 'nicknames'; sem ela
+              // outra pessoa conseguiria salvar este mesmo nickname.
+              if (nicknameAtual) {
+                garantirReservaNickname(user.uid, nicknameAtual)
+                  .then((reservado) => {
+                    if (!reservado) {
+                      console.warn(`Nickname "${nicknameAtual}" já reservado por outra conta.`);
+                    }
+                  })
+                  .catch((error: unknown) => {
+                    console.warn('Não foi possível garantir a reserva do nickname:', error);
+                  });
+              }
 
               // Só URL pública aparece em outro aparelho. Valor legado
               // (file://) é ignorado e limpo para não quebrar a imagem.
@@ -242,20 +259,21 @@ export default function PerfilScreen() {
       if (nicknameMudou) {
         // Troca atômica: reserva o novo nickname e libera o antigo.
         // Se já estiver ocupado por outra conta, lança NicknameEmUsoError.
-        // Se as regras ainda não foram publicadas, segue com checagem simples.
+        // Sem as regras publicadas não há como garantir unicidade: aborta
+        // o salvamento em vez de gravar um nickname duplicado.
         try {
           await trocarNickname(user.uid, nickname, dados.nickname, user.email ?? null);
         } catch (trocaError: unknown) {
           if (trocaError instanceof NicknameEmUsoError) {
             throw trocaError;
           }
-          const firestoreCode = (trocaError as { code?: string }).code ?? '';
-          if (firestoreCode !== 'permission-denied') {
-            throw trocaError;
+          if (ehErroPermissaoNickname(trocaError)) {
+            console.error(
+              'Nickname não verificado: publique firestore.rules (firebase deploy --only firestore:rules).',
+            );
+            throw new NicknameValidacaoError();
           }
-          console.warn(
-            'Regras do Firestore sem coleção nicknames; salvando sem reserva atômica.',
-          );
+          throw trocaError;
         }
       }
       // setDoc com merge cria o doc se ele ainda não existir (conta antiga
@@ -282,6 +300,8 @@ export default function PerfilScreen() {
       console.error('Erro ao salvar perfil:', error);
       if (error instanceof NicknameEmUsoError) {
         setErroEdicao(MSG_NICKNAME_EM_USO);
+      } else if (error instanceof NicknameValidacaoError) {
+        setErroEdicao(error.message);
       } else {
         setErroEdicao('Não foi possível salvar. Tente novamente.');
       }

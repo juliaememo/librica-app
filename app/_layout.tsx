@@ -21,6 +21,9 @@ export {
 // Impede que a tela inicial suma antes do app terminar de carregar os recursos
 SplashScreen.preventAutoHideAsync();
 
+// Faz o splash "dissolver" suavemente para a tela do app (sem corte seco)
+SplashScreen.setOptions({ duration: 400, fade: true });
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     // Carregando as fontes Gabarito (incluindo a Black solicitada)

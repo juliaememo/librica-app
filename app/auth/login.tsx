@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth, isEmailFormatoValido } from '../../components/AuthContext';
+import BrandLogo from '../../components/BrandLogo';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -42,6 +43,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <BrandLogo size={96} style={styles.logo} />
       <Text style={styles.title}>LIBRICA</Text>
       <Text style={styles.subtitle}>Faça login para continuar</Text>
 
@@ -97,6 +99,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,
+  },
+  logo: {
+    marginBottom: 4,
   },
   title: {
     fontSize: 48,

@@ -4,7 +4,7 @@
 // com os nomes abaixo e rode `firebase deploy --only hosting`.
 // O app faz STREAMING direto da URL do Hosting: nada é empacotado no app e
 // nenhum arquivo fica salvo no celular (só buffer temporário de reprodução,
-// descartado ao soltar o dedo).
+// descartado quando a prévia é fechada).
 // Deixe '' enquanto não tiver subido o vídeo — o app mostra
 // "Vídeo ainda não enviado" em vez de quebrar.
 // ---------------------------------------------------------------------------

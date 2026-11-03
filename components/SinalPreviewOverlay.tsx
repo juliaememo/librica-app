@@ -99,9 +99,8 @@ function OverlayPlayer({ uri, altura }: OverlayPlayerProps) {
 
 /**
  * Overlay global da prévia: montado uma única vez na raiz do app.
- * - `pointerEvents="none"`: nunca rouba o toque; o card mantém o responder
- *   e o `onPressOut`/`onPanResponderRelease` (soltar fecha) continua
- *   funcionando normalmente.
+ * - `pointerEvents="none"`: nunca rouba o toque; o card continua recebendo
+ *   o toque para fechar a prévia quando o usuário toca no sinal de novo.
  * - Prévia PEQUENA ao lado do ícone (não um modal enorme): usa a posição
  *   do card na tela e prende (clamp) dentro da área visível — nunca exige
  *   rolar e nunca é cortada por `overflow: hidden`/ScrollView dos
