@@ -103,7 +103,8 @@ function RootLayoutNav() {
     const isVerifyScreen = segments[0] === 'auth' && segments[1] === 'verify-email';
 
     if (!user && !inAuthGroup) {
-      // Se o usuário não está logado e não está nas telas de autenticação, redireciona para o login
+      // Se o usuário não está logado e não está nas telas de autenticação, 
+      // redireciona para o login
       router.replace('/auth/login');
     } else if (user && !user.emailVerified) {
       // E-mail ainda não confirmado (só acontece no cadastro): prende na
@@ -112,7 +113,8 @@ function RootLayoutNav() {
         router.replace('/auth/verify-email');
       }
     } else if (user && user.emailVerified && inAuthGroup) {
-      // Se o usuário já está logado e verificado e tenta acessar as telas de auth, manda direto para as abas (index/módulos)
+      // Se o usuário já está logado e verificado e tenta acessar 
+      // as telas de auth, manda direto para as abas (index/módulos)
       router.replace('/(tabs)');
     }
   }, [user, loading, router, segments]);

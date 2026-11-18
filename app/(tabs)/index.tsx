@@ -36,7 +36,7 @@ const modulosData: ModuloData[] = [
     icone: 'atom',
     corTema: '#00796b',
     corFundo: '#e0f2f1',
-    videoId: 'FSyAehMdpyI',
+    videoId: 'jF_cm4k9-z0',
     sinal: 'moduloAtomos',
   },
   {
@@ -46,7 +46,7 @@ const modulosData: ModuloData[] = [
     icone: 'flask',
     corTema: '#880e4f',
     corFundo: '#fce4ec',
-    videoId: 'WorXRPZqjeI',
+    videoId: 'h9wKwb2Q5CE',
     sinal: 'moduloVidraria',
   },
   {
@@ -56,7 +56,7 @@ const modulosData: ModuloData[] = [
     icone: 'cube',
     corTema: '#f57f17',
     corFundo: '#fffde7',
-    videoId: 'hbwKwNhIFM4',
+    videoId: 'GHjzrM0DTq0',
     sinal: 'moduloSubstancias',
   },
   {
@@ -66,7 +66,7 @@ const modulosData: ModuloData[] = [
     icone: 'tint',
     corTema: '#512da8',
     corFundo: '#ede7f6',
-    videoId: 'iWQfTI0_fFc',
+    videoId: 'eg0dbcaKPcw',
     sinal: 'moduloMisturas',
   },
   {
