@@ -4,6 +4,7 @@ import { Entypo, FontAwesome5, FontAwesome6, Ionicons, MaterialCommunityIcons } 
 import { Text, View } from '@/components/Themed';
 import SinalHostingPopup from '@/components/SinalHostingPopup';
 import { getSinalHostingUrl } from '@/src/services/sinaisHosting';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import {
   esconderPreviewSinal,
   mostrarPreviewSinal,
@@ -19,13 +20,15 @@ interface SinalCardProps {
 
 /**
  * Card de sinal do Dicionário: toque simples abre a prévia do vídeo (em
- * loop) ao lado do card; toque de novo fecha. Só uma prévia fica aberta
- * por vez — tocar em outro sinal troca direto para ele.
+ * loop) ao lado do card; toque fora da janelinha fecha. Só uma prévia fica
+ * aberta por vez.
  */
 export default function SinalCard({ sinal, lado, abreParaBaixo }: SinalCardProps) {
   const previa = usePreviewSinal();
   const ativo = previa?.titulo === sinal.titulo;
   const videoUrl = getSinalHostingUrl(sinal.titulo);
+  // Nome exibido: sem underline, mesmo que o título venha do nome do arquivo.
+  const nomeExibido = formatarNomeSinal(sinal.titulo);
 
   const handlePress = () => {
     // Fecha o teclado da busca: a prévia precisa de espaço na tela.
@@ -75,8 +78,8 @@ export default function SinalCard({ sinal, lado, abreParaBaixo }: SinalCardProps
       style={[styles.card, { borderColor: sinal.corTema }, ativo && styles.cardAtivo]}
       onPress={handlePress}
       accessibilityRole="button"
-      accessibilityLabel={`Sinal ${sinal.titulo}`}
-      accessibilityHint="Toque para ver a prévia do vídeo em loop. Toque de novo para fechar."
+      accessibilityLabel={`Sinal ${nomeExibido}`}
+      accessibilityHint="Toque para ver a prévia do vídeo em loop. Toque fora da janelinha para fechar."
       accessibilityState={{ expanded: ativo }}
     >
       {({ pressed }) => (
@@ -90,7 +93,7 @@ export default function SinalCard({ sinal, lado, abreParaBaixo }: SinalCardProps
               {renderIcone()}
             </View>
             <Text style={[styles.cardTitle, { color: sinal.corTema }]} numberOfLines={3}>
-              {sinal.titulo}
+              {nomeExibido}
             </Text>
           </View>
           {ativo && (

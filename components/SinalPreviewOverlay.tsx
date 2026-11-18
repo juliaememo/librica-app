@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ActivityIndicator,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -11,8 +12,10 @@ import { useEvent } from 'expo';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import {
   assinarPreviewSinal,
+  esconderPreviewSinal,
   lerPreviewSinal,
 } from '@/src/services/sinalPreviewStore';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 
 interface OverlayPlayerProps {
   uri: string;
@@ -99,8 +102,9 @@ function OverlayPlayer({ uri, altura }: OverlayPlayerProps) {
 
 /**
  * Overlay global da prévia: montado uma única vez na raiz do app.
- * - `pointerEvents="none"`: nunca rouba o toque; o card continua recebendo
- *   o toque para fechar a prévia quando o usuário toca no sinal de novo.
+ * - Enquanto há prévia aberta, um fundo invisível cobre a tela: qualquer
+ *   toque FORA da janelinha fecha o vídeo (o cartão consome os próprios
+ *   toques, então tocar no vídeo não fecha).
  * - Prévia PEQUENA ao lado do ícone (não um modal enorme): usa a posição
  *   do card na tela e prende (clamp) dentro da área visível — nunca exige
  *   rolar e nunca é cortada por `overflow: hidden`/ScrollView dos
@@ -122,8 +126,24 @@ export default function SinalPreviewOverlay() {
 
   // Maior que dois quadrados de ícone juntos (2 × 64 = 128px), para o
   // sinal ficar bem legível.
-  const larguraCard = Math.min(210, Math.floor(width - 24));
-  const alturaVideo = Math.round((larguraCard * 16) / 9);
+  // `alturaPorLargura` converte a largura do cartão na altura do vídeo.
+  // '16:9' é paisagem/deitado (9/16); '9:16' e '3:4' são retrato.
+  const alturaPorLargura =
+    previa.proporcao === '16:9'
+      ? 9 / 16
+      : previa.proporcao === '3:4'
+        ? 4 / 3
+        : 16 / 9; // padrão: 9:16 (Dicionário)
+  // Vídeos deitados (enunciados) ganham mais largura para o sinal ficar legível.
+  const larguraMaxima = previa.proporcao === '16:9' ? 300 : 210;
+  // Em telas baixas, reduz a largura para o vídeo + título caberem.
+  const larguraPorAltura = Math.floor((height - 80) / alturaPorLargura);
+  const larguraCard = Math.min(
+    larguraMaxima,
+    Math.floor(width - 24),
+    Math.max(140, larguraPorAltura),
+  );
+  const alturaVideo = Math.round(larguraCard * alturaPorLargura);
   // Título + paddings + vídeo (estimativa p/ o 1º frame; depois usa a real).
   const alturaEstimada = alturaVideo + 48;
   const alturaUsada = alturaReal ?? alturaEstimada;
@@ -156,14 +176,24 @@ export default function SinalPreviewOverlay() {
   topo = Math.min(Math.max(8, topo), Math.max(8, height - alturaUsada - 8));
 
   return (
-    <View pointerEvents="none" style={styles.raiz}>
-      <View
+    <View style={styles.raiz}>
+      {/* Fundo invisível de tela cheia: toque fora da janelinha fecha a
+          prévia. Fica abaixo do cartão, que consome os próprios toques. */}
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={() => esconderPreviewSinal()}
+        accessibilityRole="button"
+        accessibilityLabel="Fechar prévia do sinal"
+      />
+      <Pressable
         onLayout={(e) => {
           const h = e.nativeEvent.layout.height;
           if (typeof h === 'number' && h > 0 && h !== alturaReal) {
             setAlturaReal(h);
           }
         }}
+        // Sem ação: só impede que o toque no vídeo chegue ao fundo e feche.
+        onPress={() => {}}
         style={[
           styles.card,
           { width: larguraCard, left: esquerda, top: topo, borderColor: previa.corTema },
@@ -175,7 +205,7 @@ export default function SinalPreviewOverlay() {
           <View style={styles.tituloBar}>
             <FontAwesome name="play-circle" size={14} color={previa.corTema} />
             <Text style={[styles.titulo, { color: previa.corTema }]} numberOfLines={2}>
-              {previa.titulo}
+              {formatarNomeSinal(previa.titulo)}
             </Text>
           </View>
 
@@ -188,7 +218,7 @@ export default function SinalPreviewOverlay() {
             <OverlayPlayer key={previa.videoUrl} uri={previa.videoUrl} altura={alturaVideo} />
           )}
         </View>
-      </View>
+      </Pressable>
     </View>
   );
 }

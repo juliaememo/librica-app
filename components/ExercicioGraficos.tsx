@@ -18,6 +18,7 @@ import { useAuth } from '@/components/AuthContext';
 import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import GraficoCurva from '@/components/GraficoCurva';
 import GraficoSinalCard from '@/components/GraficoSinalCard';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import {
   ENUNCIADO_GRAFICOS,
   ETAPAS_GRAFICOS,
@@ -261,7 +262,7 @@ export default function ExercicioGraficos() {
           {sinal ? (
             <View style={[styles.slotCheio, { borderColor: sinal.corTema, backgroundColor: sinal.corFundo }]}>
               <Text style={[styles.slotTexto, { color: sinal.corTema }]} numberOfLines={1}>
-                {sinal.nome}
+                {formatarNomeSinal(sinal.nome)}
               </Text>
               {!etapaTravada && (
                 <Pressable
@@ -269,7 +270,7 @@ export default function ExercicioGraficos() {
                   hitSlop={8}
                   style={styles.slotLimpar}
                   accessibilityRole="button"
-                  accessibilityLabel={`Retirar ${sinal.nome} do espaço ${rotulo}`}
+                  accessibilityLabel={`Retirar ${formatarNomeSinal(sinal.nome)} do espaço ${rotulo}`}
                 >
                   <FontAwesome name="times" size={13} color="#7B3E52" />
                 </Pressable>

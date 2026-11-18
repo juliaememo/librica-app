@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAuth } from '../../components/AuthContext';
-
-import { isEmailFormatoValido } from '../../components/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth, isEmailFormatoValido } from '../../components/AuthContext';
 import { validarFormatoNickname } from '@/src/services/nickname';
+import LibrasSignButton from '../../components/LibrasSignButton';
+import { esconderPreviewSinal } from '@/src/services/sinalPreviewStore';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
+
+  // Fecha a janelinha de Libras ao sair da tela (ex.: voltar para o login).
+  useFocusEffect(
+    useCallback(() => {
+      return () => esconderPreviewSinal();
+    }, []),
+  );
 
   const [displayName, setDisplayName] = useState('');
   const [surname, setSurname] = useState('');
@@ -71,98 +79,152 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>LIBRICA</Text>
-      <Text style={styles.subtitle}>Crie sua conta</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Nome"
-        placeholderTextColor="#888"
-        value={displayName}
-        onChangeText={setDisplayName}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Sobrenome"
-        placeholderTextColor="#888"
-        value={surname}
-        onChangeText={setSurname}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Nome de usuário"
-        placeholderTextColor="#888"
-        value={username}
-        onChangeText={setUsername}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="E-mail"
-        placeholderTextColor="#888"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Senha"
-          placeholderTextColor="#888"
-          secureTextEntry={!passwordVisible}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity style={styles.eyeButton} onPress={togglePasswordVisibility}>
-          <FontAwesome5 name={passwordVisible ? 'eye-slash' : 'eye'} size={20} color="#555" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.passwordContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Confirmar senha"
-          placeholderTextColor="#888"
-          secureTextEntry={!confirmPasswordVisible}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
-        <TouchableOpacity style={styles.eyeButton} onPress={toggleConfirmPasswordVisibility}>
-          <FontAwesome5 name={confirmPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="#555" />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity 
-        style={styles.buttonContainer}
-        onPress={handleRegister}
-        disabled={loading}
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.btnText}>Cadastrar</Text>
-        )}
-      </TouchableOpacity>
+        <Text style={styles.title}>LIBRICA</Text>
+        <Text style={styles.subtitle}>Crie sua conta</Text>
 
-      <TouchableOpacity onPress={() => router.push('/auth/login')}>
-        <Text style={styles.linkText}>Já tem uma conta? Faça login</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.campo}>
+          <TextInput
+            style={[styles.input, styles.inputComLibras]}
+            placeholder="Nome"
+            placeholderTextColor="#888"
+            value={displayName}
+            onChangeText={setDisplayName}
+          />
+          <LibrasSignButton
+            sinal="nome"
+            tamanho={38}
+            estilo={styles.librasNoCampo}
+          />
+        </View>
+
+        <View style={styles.campo}>
+          <TextInput
+            style={[styles.input, styles.inputComLibras]}
+            placeholder="Sobrenome"
+            placeholderTextColor="#888"
+            value={surname}
+            onChangeText={setSurname}
+          />
+          <LibrasSignButton
+            sinal="sobrenome"
+            tamanho={38}
+            estilo={styles.librasNoCampo}
+          />
+        </View>
+
+        <View style={styles.campo}>
+          <TextInput
+            style={[styles.input, styles.inputComLibras]}
+            placeholder="Nome de usuário"
+            placeholderTextColor="#888"
+            autoCapitalize="none"
+            value={username}
+            onChangeText={setUsername}
+          />
+          <LibrasSignButton
+            sinal="nomeUsuario"
+            tamanho={38}
+            estilo={styles.librasNoCampo}
+          />
+        </View>
+
+        <View style={styles.campo}>
+          <TextInput
+            style={[styles.input, styles.inputComLibras]}
+            placeholder="E-mail"
+            placeholderTextColor="#888"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
+          <LibrasSignButton
+            sinal="email"
+            tamanho={38}
+            estilo={styles.librasNoCampo}
+          />
+        </View>
+
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[styles.input, styles.inputComLibras, styles.inputSenha]}
+            placeholder="Senha"
+            placeholderTextColor="#888"
+            secureTextEntry={!passwordVisible}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <LibrasSignButton
+            sinal="senha"
+            tamanho={38}
+            estilo={styles.librasNoCampo}
+          />
+          <TouchableOpacity style={styles.eyeButton} onPress={togglePasswordVisibility}>
+            <FontAwesome5 name={passwordVisible ? 'eye-slash' : 'eye'} size={20} color="#555" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={[styles.input, styles.inputComLibras, styles.inputSenha]}
+            placeholder="Confirmar senha"
+            placeholderTextColor="#888"
+            secureTextEntry={!confirmPasswordVisible}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+          <LibrasSignButton
+            sinal="confirmarSenha"
+            tamanho={38}
+            estilo={styles.librasNoCampo}
+          />
+          <TouchableOpacity style={styles.eyeButton} onPress={toggleConfirmPasswordVisibility}>
+            <FontAwesome5 name={confirmPasswordVisible ? 'eye-slash' : 'eye'} size={20} color="#555" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.buttonContainer}
+          onPress={handleRegister}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>Cadastrar</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => router.push('/auth/login')}>
+          <Text style={styles.linkText}>Já tem uma conta? Faça login</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
+    backgroundColor: '#f5f0ec',
+  },
+  container: {
+    flexGrow: 1,
     backgroundColor: '#f5f0ec',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   title: {
     fontSize: 48,
@@ -183,10 +245,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 10,
     paddingHorizontal: 15,
-    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#ddd',
     color: '#5a3d40',
+  },
+  campo: {
+    width: '100%',
+    height: 50,
+    marginBottom: 15,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  inputComLibras: {
+    paddingLeft: 54,
+  },
+  inputSenha: {
+    paddingRight: 48,
+  },
+  librasNoCampo: {
+    position: 'absolute',
+    left: 6,
+    top: 6,
   },
   passwordContainer: {
     width: '100%',
@@ -196,8 +275,8 @@ const styles = StyleSheet.create({
   },
   eyeButton: {
     position: 'absolute',
-    right: 15,
-    top: 15,
+    right: 8,
+    top: 7,
     padding: 5,
   },
   buttonContainer: {

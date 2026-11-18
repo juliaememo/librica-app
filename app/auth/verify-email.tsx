@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -40,8 +43,10 @@ export default function VerifyEmailScreen(): React.JSX.Element {
 
   useEffect(() => {
     // Sem usuário na sessão, volta para o login.
-    if (user === null) return;
-  }, [user]);
+    if (user === null) {
+      router.replace('/auth/login');
+    }
+  }, [user, router]);
 
   const handleAlreadyVerified = async (): Promise<void> => {
     setState((prev) => ({ ...prev, checking: true, errorMessage: null }));
@@ -89,76 +94,91 @@ export default function VerifyEmailScreen(): React.JSX.Element {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.iconCircle}>
-        <FontAwesome5 name="envelope-open-text" size={32} color="#7B3E52" />
-      </View>
-      <Text style={styles.title}>Confirme seu e-mail</Text>
-      <Text style={styles.subtitle}>
-        Enviamos um link de confirmação para{'\n'}
-        <Text style={styles.email}>{user?.email ?? 'seu e-mail'}</Text>
-      </Text>
-      <Text style={styles.hint}>
-        Essa verificação acontece uma única vez, só no cadastro, para garantir que o
-        e-mail é válido e pertence a você. Abra o link no mesmo aparelho ou depois
-        volte aqui e toque em “Já confirmei”.
-      </Text>
-
-      {state.errorMessage ? (
-        <View style={styles.errorBox} accessibilityRole="alert">
-          <Text style={styles.errorText}>{state.errorMessage}</Text>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.iconCircle}>
+          <FontAwesome5 name="envelope-open-text" size={32} color="#7B3E52" />
         </View>
-      ) : null}
+        <Text style={styles.title}>Confirme seu e-mail</Text>
+        <Text style={styles.subtitle}>
+          Enviamos um link de confirmação para{'\n'}
+          <Text style={styles.email}>{user?.email ?? 'seu e-mail'}</Text>
+        </Text>
+        <Text style={styles.hint}>
+          Essa verificação acontece uma única vez, só no cadastro, para garantir que o
+          e-mail é válido e pertence a você. Abra o link no mesmo aparelho ou depois
+          volte aqui e toque em “Já confirmei”.
+        </Text>
 
-      <TouchableOpacity
-        style={[styles.buttonContainer, state.checking && styles.buttonDisabled]}
-        onPress={handleAlreadyVerified}
-        disabled={state.checking}
-        accessibilityRole="button"
-        accessibilityLabel="Já confirmei meu e-mail"
-      >
-        {state.checking ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.btnText}>Já confirmei</Text>
-        )}
-      </TouchableOpacity>
+        {state.errorMessage ? (
+          <View style={styles.errorBox} accessibilityRole="alert">
+            <Text style={styles.errorText}>{state.errorMessage}</Text>
+          </View>
+        ) : null}
 
-      <TouchableOpacity
-        style={[
-          styles.secondaryButton,
-          (state.resending || state.cooldown > 0) && styles.buttonDisabled,
-        ]}
-        onPress={handleResend}
-        disabled={state.resending || state.cooldown > 0}
-        accessibilityRole="button"
-        accessibilityLabel="Reenviar e-mail de confirmação"
-      >
-        {state.resending ? (
-          <ActivityIndicator color="#7B3E52" />
-        ) : (
-          <Text style={styles.secondaryBtnText}>
-            {state.cooldown > 0
-              ? `Reenviar em ${state.cooldown}s`
-              : 'Reenviar e-mail'}
-          </Text>
-        )}
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.buttonContainer, state.checking && styles.buttonDisabled]}
+          onPress={handleAlreadyVerified}
+          disabled={state.checking}
+          accessibilityRole="button"
+          accessibilityLabel="Já confirmei meu e-mail"
+        >
+          {state.checking ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>Já confirmei</Text>
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity onPress={handleLogout} accessibilityRole="button">
-        <Text style={styles.linkText}>Sair / usar outro e-mail</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          style={[
+            styles.secondaryButton,
+            (state.resending || state.cooldown > 0) && styles.buttonDisabled,
+          ]}
+          onPress={handleResend}
+          disabled={state.resending || state.cooldown > 0}
+          accessibilityRole="button"
+          accessibilityLabel="Reenviar e-mail de confirmação"
+        >
+          {state.resending ? (
+            <ActivityIndicator color="#7B3E52" />
+          ) : (
+            <Text style={styles.secondaryBtnText}>
+              {state.cooldown > 0
+                ? `Reenviar em ${state.cooldown}s`
+                : 'Reenviar e-mail'}
+            </Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleLogout} accessibilityRole="button">
+          <Text style={styles.linkText}>Sair / usar outro e-mail</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
+    backgroundColor: '#f5f0ec',
+  },
+  container: {
+    flexGrow: 1,
     backgroundColor: '#f5f0ec',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   iconCircle: {
     width: 72,

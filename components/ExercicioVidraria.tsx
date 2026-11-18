@@ -16,6 +16,7 @@ import { auth, db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
 import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import VidrariaCard from '@/components/VidrariaCard';
+import LibrasSignButton from '@/components/LibrasSignButton';
 import {
   ENUNCIADO_VIDRARIAS,
   VIDRIAS_DATA,
@@ -227,14 +228,29 @@ export default function ExercicioVidraria() {
                 ? 'Concluído ✓'
                 : `Vidraria ${done.length + 1} de ${total}`}
             </Text>
-            <Text style={styles.enunciado}>{ENUNCIADO_VIDRARIAS}</Text>
+            <View style={styles.enunciadoLinha}>
+              <LibrasSignButton
+                sinal="enunciadoVidrarias"
+                cor="#880e4f"
+                tamanho={34}
+              />
+              <Text style={styles.enunciado}>{ENUNCIADO_VIDRARIAS}</Text>
+            </View>
           </View>
 
-          {/* Cartão da função: toque na vidraria e confirme no Concluir. */}
+          {/* Cartão da função: toque na vidraria e confirme no Concluir.
+              O ícone de Libras abre o vídeo do enunciado desta tela. */}
           {!tudoConcluido && alvo && (
             <View style={styles.alvo}>
               <Text style={styles.alvoRotulo}>Qual vidraria tem esta função?</Text>
-              <Text style={styles.alvoFuncao}>{alvo.funcao}</Text>
+              <View style={styles.alvoEnunciadoLinha}>
+                <Text style={styles.alvoFuncao}>{alvo.funcao}</Text>
+                <LibrasSignButton
+                  sinal={alvo.sinal}
+                  cor="#880e4f"
+                  tamanho={32}
+                />
+              </View>
               <Text style={styles.alvoDica}>Toque na vidraria e clique em Concluir</Text>
             </View>
           )}
@@ -385,9 +401,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   enunciado: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '600',
     color: '#5a3d40',
+  },
+  enunciadoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   alvo: {
     backgroundColor: '#fff',
@@ -399,11 +421,7 @@ const styles = StyleSheet.create({
     gap: 6,
     alignItems: 'center',
   },
-  alvoDestacado: {
-    borderStyle: 'solid',
-    borderColor: '#00796b',
-    backgroundColor: '#e0f2f1',
-  },  alvoRotulo: {
+  alvoRotulo: {
     fontSize: 12,
     fontWeight: '700',
     color: '#8c7b7d',
@@ -411,11 +429,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   alvoFuncao: {
+    flexShrink: 1,
     fontSize: 16,
     fontWeight: '700',
     color: '#5a3d40',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  alvoEnunciadoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
   },
   alvoDica: {
     fontSize: 12,

@@ -9,3 +9,6 @@ dist
 android/.gradle
 android/app/build
 android/build
+
+# Vídeos ficam no Firebase Hosting (streaming) e não entram no app:
+public/videos

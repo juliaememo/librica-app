@@ -15,8 +15,13 @@ export type SinalGraficoId = EstadoId | TipoGraficoId;
 
 export interface SinalGrafico {
   id: SinalGraficoId;
-  /** Nome do sinal em Libras (chave do vídeo no Hosting). */
+  /** Nome exibido no card (também usado como chave do vídeo, se `video` não existir). */
   nome: string;
+  /**
+   * Chave do vídeo no Hosting quando ela é diferente do nome exibido.
+   * Ex.: o card mostra "Mistura comum", mas o vídeo disponível é o de "Misturar".
+   */
+  video?: string;
   corTema: string;
   corFundo: string;
 }
@@ -47,7 +52,8 @@ export const SINAIS_GRAFICOS: SinalGrafico[] = [
   { id: 'liquido', nome: 'Líquido', corTema: '#00838f', corFundo: '#e0f7fa' },
   { id: 'gasoso', nome: 'Gasoso', corTema: '#78909c', corFundo: '#eceff1' },
   { id: 'substancia', nome: 'Substância', corTema: '#00796b', corFundo: '#e0f2f1' },
-  { id: 'mistura-comum', nome: 'Mistura comum', corTema: '#512da8', corFundo: '#ede7f6' },
+  // Não existe vídeo do sinal "Mistura comum"; o de "Misturar" é o mais próximo.
+  { id: 'mistura-comum', nome: 'Mistura comum', video: 'Misturar', corTema: '#512da8', corFundo: '#ede7f6' },
   { id: 'eutetica', nome: 'Mistura eutética', corTema: '#f57f17', corFundo: '#fff8e1' },
   { id: 'azeotropica', nome: 'Mistura azeotrópica', corTema: '#d84315', corFundo: '#fbe9e7' },
 ];

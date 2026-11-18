@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, StyleSheet, Text, View } from 'react-native';
 import SinalHostingPopup from '@/components/SinalHostingPopup';
 import { getSinalHostingUrl } from '@/src/services/sinaisHosting';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import type { AtomoDisponivel } from '@/src/data/exercicios';
 
 interface AtomoCardProps {
@@ -43,6 +44,8 @@ export default function AtomoCard({
   const sobreBeckerRef = useRef<boolean>(false);
 
   const videoUrl = getSinalHostingUrl(atomo.titulo);
+  // Nome exibido: sem underline, mesmo que venha do nome do arquivo.
+  const nomeExibido = formatarNomeSinal(atomo.titulo);
   const ativo = mostrarPreview || arrastando;
 
   // O PanResponder é criado uma vez: acessa as props via ref p/ nunca
@@ -112,7 +115,9 @@ export default function AtomoCard({
         limparTimer();
         setMostrarPreview(false);
         if (!moveuRef.current) {
+          // Toque: coloca direto no béquer (sem vídeo).
           pan.setValue({ x: 0, y: 0 });
+          cbRef.current.onDrop(cbRef.current.atomo);
           return;
         }
         if (cbRef.current.isDentroDoBecker(g.moveX, g.moveY)) {
@@ -141,8 +146,8 @@ export default function AtomoCard({
       ]}
       {...panResponder.panHandlers}
       accessibilityRole="button"
-      accessibilityLabel={`Sinal ${atomo.titulo}`}
-      accessibilityHint="Segure para ver a prévia do vídeo e solte para fechar. Arraste até o béquer para usar no exercício."
+      accessibilityLabel={`Sinal ${nomeExibido}`}
+      accessibilityHint="Segure para ver a prévia do vídeo e solte para fechar. Toque ou arraste até o béquer para usar no exercício."
     >
       <View style={[styles.cardInner, ativo && styles.cardInnerAtivo]}>
         {/* Borda menor colorida (interna) — a externa fica neutra. */}
@@ -152,10 +157,10 @@ export default function AtomoCard({
           </Text>
         </View>
         <Text style={[styles.cardTitulo, { color: atomo.corTema }]} numberOfLines={3}>
-          {atomo.titulo}
+          {nomeExibido}
         </Text>
         <Text style={styles.cardDica} numberOfLines={1}>
-          Segure p/ ver • arraste
+          Segure p/ ver • toque/arraste
         </Text>
       </View>
       {mostrarPreview && (

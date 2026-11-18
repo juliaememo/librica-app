@@ -115,7 +115,7 @@ function RootLayoutNav() {
       // Se o usuário já está logado e verificado e tenta acessar as telas de auth, manda direto para as abas (index/módulos)
       router.replace('/(tabs)');
     }
-  }, [user, loading, segments]);
+  }, [user, loading, router, segments]);
 
   // Exibe um carregamento enquanto o Firebase valida se há um usuário salvo na sessão
   if (loading) {
@@ -133,13 +133,12 @@ function RootLayoutNav() {
             Assim o topo nunca "pisca" quando a barra nativa reaparece. */}
         <StatusBar style="dark" />
         <Stack>
-          <Stack.Screen name="SplashScreen" options={{ headerShown: false }} />
+          <Stack.Screen name="splash" options={{ headerShown: false }} />
           <Stack.Screen name="auth/login" options={{ headerShown: false }} />
           <Stack.Screen name="auth/register" options={{ headerShown: false }} />
           <Stack.Screen name="auth/verify-email" options={{ headerShown: false }} />
           <Stack.Screen name="auth/forgot-password" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
         {/* Prévia global do vídeo de sinal: fica acima de todas as telas,
             sempre centralizada e visível, sem ser cortada pelo layout local. */}

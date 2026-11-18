@@ -4,6 +4,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import VidrariaDesenho from '@/components/VidrariaDesenho';
 import SinalHostingPopup from '@/components/SinalHostingPopup';
 import { getSinalHostingUrl } from '@/src/services/sinaisHosting';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import type { Vidraria } from '@/src/data/vidrarias';
 
 interface VidrariaCardProps {
@@ -37,6 +38,8 @@ export default function VidrariaCard({
 
   const videoUrl = getSinalHostingUrl(vidraria.nome);
   const ativo = mostrarPreview;
+  // Nome exibido: sem underline, mesmo que venha do nome do arquivo.
+  const nomeExibido = formatarNomeSinal(vidraria.nome);
 
   useEffect(() => {
     return () => {
@@ -92,7 +95,7 @@ export default function VidrariaCard({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       accessibilityRole="button"
-      accessibilityLabel={`${vidraria.nome}${selecionado ? ', selecionada' : ''}`}
+      accessibilityLabel={`${nomeExibido}${selecionado ? ', selecionada' : ''}`}
       accessibilityHint="Toque para escolher. Segure para ver a prévia do vídeo e solte para fechar."
     >
       {({ pressed }) => (
@@ -105,7 +108,7 @@ export default function VidrariaCard({
             )}
               <VidrariaDesenho id={vidraria.id} />
               <Text style={[styles.cardTitulo, { color: vidraria.corTema }]}>
-                {vidraria.nome}
+                {nomeExibido}
               </Text>
           </View>
           {ativo && (

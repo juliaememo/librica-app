@@ -152,7 +152,7 @@ export default function PerfilScreen() {
       }
 
       carregarDadosUsuario();
-    }, [user?.uid]),
+    }, [user?.uid, user?.displayName, user?.email, user?.emailVerified]),
   );
 
   const escolherFoto = async () => {

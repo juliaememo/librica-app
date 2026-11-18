@@ -16,6 +16,8 @@ import { useAuth } from '@/components/AuthContext';
 import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import BeckerView from '@/components/BeckerView';
 import AtomoCard from '@/components/AtomoCard';
+import LibrasSignButton from '@/components/LibrasSignButton';
+import type { ChaveSinalEnunciado } from '@/src/services/sinaisEnunciados';
 import ExercicioVidraria from '@/components/ExercicioVidraria';
 import ExercicioSubstancias from '@/components/ExercicioSubstancias';
 import ExercicioMisturas from '@/components/ExercicioMisturas';
@@ -66,6 +68,15 @@ interface BeckerRect {
   w: number;
   h: number;
 }
+
+/**
+ * Vídeo de Libras que mostra a molécula-alvo de cada etapa do módulo 1.
+ * A mãozinha fica dentro do aviso "Forme: …" e abre o vídeo no toque.
+ */
+const SINAL_MOLECULA_POR_ETAPA: Record<string, ChaveSinalEnunciado> = {
+  o2: 'moleculaO2',
+  h2o: 'moleculaAgua',
+};
 
 export default function ModuloExercicioScreen() {
   const router = useRouter();
@@ -364,7 +375,14 @@ export default function ModuloExercicioScreen() {
             <Text style={styles.moduloTag}>
               {tudoConcluido ? 'Concluído ✓' : `Etapa ${etapaIndex + 1} de ${ETAPAS_ATOMOS_MOLECULAS.length}`}
             </Text>
-            <Text style={styles.enunciado}>{ENUNCIADO_ATOMOS_MOLECULAS}</Text>
+            <View style={styles.enunciadoLinha}>
+              <LibrasSignButton
+                sinal="enunciadoAtomos"
+                cor="#00796b"
+                tamanho={34}
+              />
+              <Text style={styles.enunciado}>{ENUNCIADO_ATOMOS_MOLECULAS}</Text>
+            </View>
           </View>
 
           {/* Béquer + sinais colocados (mede a posição p/ o drop). */}
@@ -378,7 +396,15 @@ export default function ModuloExercicioScreen() {
             />
           </View>
 
-          <Text style={styles.alvoTexto}>{etapa.alvoDescricao}</Text>
+          {/* Aviso "Forme: …" com a mãozinha clicável do sinal da molécula. */}
+          <View style={styles.alvoLinha}>
+            <LibrasSignButton
+              sinal={SINAL_MOLECULA_POR_ETAPA[etapa.id] ?? 'enunciadoAtomos'}
+              cor="#7B3E52"
+              tamanho={32}
+            />
+            <Text style={styles.alvoTexto}>{etapa.alvoDescricao}</Text>
+          </View>
 
           {/* Sinais arrastáveis (segurar mostra o vídeo, igual ao Dicionário). */}
           <View style={styles.trayHintRow}>
@@ -522,21 +548,33 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   enunciado: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '600',
     color: '#5a3d40',
     marginBottom: 4,
   },
+  enunciadoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  alvoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    backgroundColor: '#f5e6ea',
+    borderRadius: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    overflow: 'hidden',
+  },
   alvoTexto: {
+    flexShrink: 1,
     fontSize: 14,
     fontWeight: '700',
     color: '#7B3E52',
-    textAlign: 'center',
-    backgroundColor: '#f5e6ea',
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    overflow: 'hidden',
   },
   trayHintRow: {
     alignItems: 'center',

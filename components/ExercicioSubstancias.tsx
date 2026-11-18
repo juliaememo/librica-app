@@ -15,11 +15,14 @@ import { auth, db } from '@/src/services/firebase';
 import { useAuth } from '@/components/AuthContext';
 import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import SegurarParaVer from '@/components/SegurarParaVer';
+import LibrasSignButton from '@/components/LibrasSignButton';
+import type { ChaveSinalEnunciado } from '@/src/services/sinaisEnunciados';
 import { embaralhar } from '@/src/utils/embaralhar';
 import {
   ENUNCIADO_SUBSTANCIAS,
   ROTULO_TIPO,
   SUBSTANCIAS_DATA,
+  VIDEO_TIPO,
   type Substancia,
   type TipoSubstancia,
 } from '@/src/data/substancias';
@@ -28,6 +31,19 @@ import {
 
 const TODOS_INDICES = SUBSTANCIAS_DATA.map((_, i) => i);
 const OPCOES: TipoSubstancia[] = ['simples', 'composta'];
+
+/**
+ * Vídeo de Libras de cada substância (pasta `enunciados`, 16:9). A mãozinha
+ * no cartão abre o vídeo da substância que está na tela.
+ */
+const SINAL_SUBSTANCIA_POR_ID: Record<string, ChaveSinalEnunciado> = {
+  o2: 'substanciaO2',
+  co2: 'substanciaCO2',
+  c: 'substanciaDiamante',
+  nacl: 'substanciaNaCl',
+  h2: 'substanciaH2',
+  h2o: 'substanciaAgua',
+};
 
 interface Feedback {
   tipo: 'sucesso' | 'erro';
@@ -228,29 +244,45 @@ export default function ExercicioSubstancias() {
                 ? 'Concluído ✓'
                 : `Substância ${done.length + 1} de ${total}`}
             </Text>
-            <Text style={styles.enunciado}>{ENUNCIADO_SUBSTANCIAS}</Text>
+            <View style={styles.enunciadoLinha}>
+              <LibrasSignButton
+                sinal="enunciadoSubstancias"
+                cor="#f57f17"
+                tamanho={34}
+              />
+              <Text style={styles.enunciado}>{ENUNCIADO_SUBSTANCIAS}</Text>
+            </View>
           </View>
 
-          {/* Cartão da substância (segurar mostra o vídeo do sinal). */}
+          {/* Cartão da substância. A mãozinha no canto abre o vídeo da
+              substância (enunciados); o cartão em si não tem gesto. */}
           {!tudoConcluido && atual && (
-            <SegurarParaVer
-              titulo={atual.nome}
-              corTema={atual.corTema}
-              lado="direita"
-              abreParaBaixo
-              style={[styles.substancia, { borderColor: atual.corTema, backgroundColor: atual.corFundo }]}
-              accessibilityLabel={`Substância ${atual.nome}, ${atual.formula}`}
-            >
-              <View style={styles.substanciaInner}>
-                <Text style={[styles.formula, { color: atual.corTema }]}>
-                  {atual.formula}
-                </Text>
-                <Text style={[styles.nome, { color: atual.corTema }]}>
-                  {atual.nome}
-                </Text>
-                <Text style={styles.substanciaDica}>Segure p/ ver o sinal</Text>
+            <View style={styles.substanciaWrap}>
+              <View
+                style={[styles.substancia, { borderColor: atual.corTema, backgroundColor: atual.corFundo }]}
+                accessibilityLabel={`Substância ${atual.nome}, ${atual.formula}`}
+              >
+                <View style={styles.substanciaInner}>
+                  <Text style={[styles.formula, { color: atual.corTema }]}>
+                    {atual.formula}
+                  </Text>
+                  <Text style={[styles.nome, { color: atual.corTema }]}>
+                    {atual.nome}
+                  </Text>
+                  <Text style={styles.substanciaDica}>
+                    Toque na mãozinha p/ ver o vídeo
+                  </Text>
+                </View>
               </View>
-            </SegurarParaVer>
+
+              <View style={styles.maoWrap}>
+                <LibrasSignButton
+                  sinal={SINAL_SUBSTANCIA_POR_ID[atual.id] ?? 'enunciadoSubstancias'}
+                  cor={atual.corTema}
+                  tamanho={40}
+                />
+              </View>
+            </View>
           )}
 
           {/* Botões Simples / Composta (segurar mostra o vídeo do sinal). */}
@@ -263,7 +295,7 @@ export default function ExercicioSubstancias() {
                   return (
                     <SegurarParaVer
                       key={tipo}
-                      titulo={ROTULO_TIPO[tipo]}
+                      titulo={VIDEO_TIPO[tipo]}
                       corTema={tipo === 'simples' ? '#00796b' : '#d84315'}
                       lado={tipo === 'simples' ? 'direita' : 'esquerda'}
                       abreParaBaixo={false}
@@ -420,9 +452,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   enunciado: {
+    flex: 1,
     fontSize: 15,
     fontWeight: '600',
     color: '#5a3d40',
+  },
+  enunciadoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   substancia: {
     borderWidth: 1.5,
@@ -435,6 +473,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     padding: 16,
+  },
+  substanciaWrap: {
+    position: 'relative',
+  },
+  maoWrap: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    zIndex: 20,
+    elevation: 20,
   },
   formula: {
     fontSize: 52,

@@ -31,3 +31,13 @@ export const ROTULO_TIPO: Record<TipoSubstancia, string> = {
   simples: 'Simples',
   composta: 'Composta',
 };
+
+/**
+ * Chave do vídeo de Libras de cada opção. O texto na tela continua curto
+ * ("Simples"/"Composta"), mas o sinal completo é "Substância simples"/
+ * "Substância composta" — que são os vídeos que existem no Hosting.
+ */
+export const VIDEO_TIPO: Record<TipoSubstancia, string> = {
+  simples: 'Substância simples',
+  composta: 'Substância composta',
+};

@@ -38,5 +38,3 @@ const styles = StyleSheet.create({
     color: '#2e78b7',
   },
 });
-
-// essa página é de tratamento de erro, então meio que caguei também

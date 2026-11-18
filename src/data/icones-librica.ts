@@ -15,8 +15,6 @@ export const ICONES_VIDRARIA: Record<VidrariaId, ImageSourcePropType> = {
   pisseta: require('@/assets/images/icones librica/pisseta.png'),
   bureta: require('@/assets/images/icones librica/bureta.png'),
   erlenmeyer: require('@/assets/images/icones librica/erlenmeyer.png'),
-  'vidro-relogio': require('@/assets/images/icones librica/vidro-de-relogio.png'),
-  oculos: require('@/assets/images/icones librica/oculos-de-protecao.png'),
 };
 
 export const ICONES_CENA: Record<CenaId, ImageSourcePropType> = {

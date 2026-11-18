@@ -3,6 +3,7 @@ import { Animated, PanResponder, StyleSheet, Text, View } from 'react-native';
 import IngredienteDesenho from '@/components/IngredienteDesenho';
 import SinalHostingPopup from '@/components/SinalHostingPopup';
 import { getSinalHostingUrl } from '@/src/services/sinaisHosting';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import type { Ingrediente } from '@/src/data/misturas';
 
 interface IngredienteCardProps {
@@ -44,6 +45,8 @@ export default function IngredienteCard({
 
   const videoUrl = getSinalHostingUrl(ingrediente.nome);
   const ativo = mostrarPreview || arrastando;
+  // Nome exibido: sem underline, mesmo que venha do nome do arquivo.
+  const nomeExibido = formatarNomeSinal(ingrediente.nome);
 
   // O PanResponder é criado uma vez: acessa as props via ref p/ nunca
   // usar callbacks desatualizadas do primeiro render.
@@ -141,13 +144,13 @@ export default function IngredienteCard({
       ]}
       {...panResponder.panHandlers}
       accessibilityRole="button"
-      accessibilityLabel={`${ingrediente.nome}`}
+      accessibilityLabel={`${nomeExibido}`}
       accessibilityHint="Segure para ver a prévia do vídeo e solte para fechar. Toque ou arraste até o béquer para usar na mistura."
     >
       <View style={[styles.cardInner, ativo && styles.cardInnerAtivo]}>
         <IngredienteDesenho id={ingrediente.id} />
         <Text style={[styles.cardTitulo, { color: ingrediente.corTema }]}>
-          {ingrediente.nome}
+          {nomeExibido}
         </Text>
       </View>
       {mostrarPreview && (

@@ -31,6 +31,14 @@ export interface SinalPreviewPayload {
   ancora?: SinalPreviewAncora | null;
   lado?: 'esquerda' | 'direita';
   abreParaBaixo?: boolean;
+  /**
+   * Proporção do vídeo na janelinha:
+   * - '16:9' → paisagem (deitado), usada nos enunciados;
+   * - '9:16' → retrato, usada nos sinais do Dicionário;
+   * - '3:4'  → retrato, usada nos sinais de navegação.
+   * Padrão: '9:16' (Dicionário).
+   */
+  proporcao?: '16:9' | '9:16' | '3:4';
 }
 
 type PreviewListener = () => void;

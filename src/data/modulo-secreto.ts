@@ -13,6 +13,12 @@ import type { Sinal } from './sinais';
 /** Vídeo do YouTube exibido na página (só o ID, ex.: 'FSyAehMdpyI'). */
 export const VIDEO_ID_MODULO_SECRETO = 'MQ1HKKFtTJs';
 
+/**
+ * Segundo vídeo da pasta secreta ("Conheça os criadores do Librica"),
+ * exibido logo abaixo do making of.
+ */
+export const VIDEO_ID_CRIADORES = 'NYjbvo9P-80';
+
 export const TITULO_MODULO_SECRETO = 'Módulo Secreto';
 
 export const DESCRICAO_MODULO_SECRETO =
@@ -36,27 +42,37 @@ export const DESCRICAO_MODULO_SECRETO =
 // ---------------------------------------------------------------------------
 
 export const SINAIS_SECRETOS: Sinal[] = [
-  { id: 's1', titulo: '67 Sinistro', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's2', titulo: '67 Olho Loucura', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's3', titulo: '67 Aparece De Novo', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's4', titulo: 'Bola de Pilates', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's5', titulo: 'Dançando sem Vida no Olhar', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's6', titulo: 'Dançando Sertanejo ao Som de Pop Coreano Psicodélico', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's7', titulo: 'Doideira', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's8', titulo: 'Guerreiro Preparando', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's9', titulo: 'Hm...Ok', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's10', titulo: 'Jamal', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's11', titulo: 'Lá Ele', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's12', titulo: 'Loucura Ai Dentro', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's13', titulo: 'Loucura 67 Parte 3', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's14', titulo: 'Mini Dança Gamer', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's15', titulo: 'Pew Pew', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's16', titulo: 'Possuído pelo 67', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's17', titulo: 'Quero Cagar', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's18', titulo: 'Quicada Dolorosa', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's19', titulo: 'Rebolada para Relaxar', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's20', titulo: 'Rebolada Vitoriosa', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's21', titulo: 'Selva 13 Foreshadowing', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's22', titulo: 'Tico Tico Tico', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
-  { id: 's23', titulo: 'Um Segundo Dança', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's1', titulo: '67 Aparece De Novo', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's2', titulo: '67 Dança', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's3', titulo: '67 Olho Loucura', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's4', titulo: '67 Sinistro', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's5', titulo: 'Bola de Pilates', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's6', titulo: 'Chad', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's7', titulo: 'Dança Não Visível', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's8', titulo: 'Dança Perto da Vitória', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's9', titulo: 'Dançando sem Vida no Olhar', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's10', titulo: 'Dançando Sertanejo ao Som de Pop Coreano Psicodélico', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's11', titulo: 'Doideira', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's12', titulo: 'Gira', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's13', titulo: 'Guerreiro Preparando', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's14', titulo: 'Hm...Ok', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's15', titulo: 'Jamal', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's16', titulo: 'Lá Ele', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's17', titulo: 'Loucura 67 Parte 3', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's18', titulo: 'Loucura Ai Dentro', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's19', titulo: 'Mano Kkkkkkkkkkkk', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's20', titulo: 'Mini Dança Gamer', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's21', titulo: 'Pew Pew', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's22', titulo: 'Possuído pelo 67', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's23', titulo: 'Quero Cagar', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's24', titulo: 'Quicada Dolorosa', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's25', titulo: 'Rebolada para Relaxar', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's26', titulo: 'Rebolada Vitoriosa', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's27', titulo: 'Remelejo', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's28', titulo: 'Sei Lá', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's29', titulo: 'Selva 13 Foreshadowing', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's30', titulo: 'Sinal Dança', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's31', titulo: 'Tá Bom Então', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's32', titulo: 'Tico Tico Tico', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
+  { id: 's33', titulo: 'Um Segundo Dança', icone: 'gift', corTema: '#4a2c00', corFundo: '#ffe9b8', categorias: ['Secreta'] },
 ];

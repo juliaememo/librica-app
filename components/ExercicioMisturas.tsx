@@ -17,6 +17,7 @@ import { useAuth } from '@/components/AuthContext';
 import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/src/services/progresso';
 import BeckerMistura from '@/components/BeckerMistura';
 import IngredienteCard from '@/components/IngredienteCard';
+import LibrasSignButton from '@/components/LibrasSignButton';
 import SegurarParaVer from '@/components/SegurarParaVer';
 import {
   ENUNCIADO_MISTURAS,
@@ -265,7 +266,8 @@ export default function ExercicioMisturas() {
     return (
       <SegurarParaVer
         key={valor}
-        titulo={String(valor)}
+        // Não há vídeo para "1"/"2"; o sinal genérico de "Fases" é o que existe.
+        titulo="Fases"
         corTema={COR_FASES}
         lado={valor === 1 ? 'direita' : 'esquerda'}
         abreParaBaixo={false}
@@ -335,7 +337,14 @@ export default function ExercicioMisturas() {
             <Text style={styles.moduloTag}>
               {tudoConcluido ? 'Concluído ✓' : `Mistura ${etapaIndex + 1} de ${total}`}
             </Text>
-            <Text style={styles.enunciado}>{ENUNCIADO_MISTURAS}</Text>
+            <View style={styles.enunciadoLinha}>
+              <LibrasSignButton
+                sinal="enunciadoMisturas"
+                cor={COR_FASES}
+                tamanho={34}
+              />
+              <Text style={styles.enunciado}>{ENUNCIADO_MISTURAS}</Text>
+            </View>
           </View>
 
           {/* Béquer + ingredientes colocados. */}
@@ -350,12 +359,16 @@ export default function ExercicioMisturas() {
             />
           </View>
 
-          <Text style={styles.alvoTexto}>{etapa.alvoDescricao}</Text>
+          <View style={styles.alvoLinha}>
+            <Text style={styles.alvoTexto}>{etapa.alvoDescricao}</Text>
+            <LibrasSignButton sinal={etapa.sinal} cor={COR_FASES} tamanho={32} />
+          </View>
 
           {/* Balões: fases e classificação (segurar mostra o vídeo). */}
           <View style={styles.baloes}>
             <View style={styles.balaoLinha}>
               <Text style={styles.balaoRotulo}>Fases:</Text>
+              <LibrasSignButton sinal="quantasFases" cor={COR_FASES} tamanho={30} />
               {balaoFases(1)}
               {balaoFases(2)}
             </View>
@@ -509,20 +522,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   enunciado: {
+    flex: 1,
     fontSize: 14,
     fontWeight: '600',
     color: '#5a3d40',
   },
-  alvoTexto: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#7B3E52',
-    textAlign: 'center',
+  enunciadoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  alvoLinha: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     backgroundColor: '#f5e6ea',
     borderRadius: 10,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    overflow: 'hidden',
+  },
+  alvoTexto: {
+    flexShrink: 1,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#7B3E52',
+    textAlign: 'center',
   },
   baloes: {
     gap: 8,

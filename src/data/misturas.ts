@@ -3,6 +3,8 @@
 // indicar quantas fases (1 ou 2) e classificar (homogênea/heterogênea).
 // Ordem fixa (1. sal+água, 2. água+óleo, 3. arroz+feijão, 4. água+vinagre).
 
+import type { ChaveSinalEnunciado } from '@/src/services/sinaisEnunciados';
+
 export type IngredienteId = 'agua' | 'sal' | 'oleo' | 'arroz' | 'feijao' | 'vinagre';
 
 export interface Ingrediente {
@@ -22,6 +24,8 @@ export interface EtapaMistura {
   id: string;
   /** Texto exibido embaixo do béquer (o que deve ser misturado). */
   alvoDescricao: string;
+  /** Vídeo de Libras que explica esta mistura. */
+  sinal: ChaveSinalEnunciado;
   /** Ingredientes exatos esperados no béquer (ordem não importa). */
   esperados: IngredienteId[];
   fases: QtdFases;
@@ -44,6 +48,7 @@ export const ETAPAS_MISTURAS: EtapaMistura[] = [
   {
     id: 'sal-agua',
     alvoDescricao: 'Misture: Sal + Água',
+    sinal: 'misturaSalAgua',
     esperados: ['sal', 'agua'],
     fases: 1,
     tipo: 'homogenea',
@@ -51,6 +56,7 @@ export const ETAPAS_MISTURAS: EtapaMistura[] = [
   {
     id: 'agua-oleo',
     alvoDescricao: 'Misture: Água + Óleo',
+    sinal: 'misturaAguaOleo',
     esperados: ['agua', 'oleo'],
     fases: 2,
     tipo: 'heterogenea',
@@ -58,6 +64,7 @@ export const ETAPAS_MISTURAS: EtapaMistura[] = [
   {
     id: 'arroz-feijao',
     alvoDescricao: 'Misture: Arroz + Feijão',
+    sinal: 'misturaArrozFeijao',
     esperados: ['arroz', 'feijao'],
     fases: 2,
     tipo: 'heterogenea',
@@ -65,6 +72,7 @@ export const ETAPAS_MISTURAS: EtapaMistura[] = [
   {
     id: 'agua-vinagre',
     alvoDescricao: 'Misture: Água + Vinagre',
+    sinal: 'misturaAguaVinagre',
     esperados: ['agua', 'vinagre'],
     fases: 1,
     tipo: 'homogenea',

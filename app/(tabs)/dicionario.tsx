@@ -98,7 +98,7 @@ export default function DicionarioScreen() {
               ? `${sinaisFiltrados.length} ${
                   sinaisFiltrados.length === 1 ? 'sinal encontrado' : 'sinais encontrados'
                 }`
-              : 'Toque em um sinal p/ ver a prévia • toque de novo p/ fechar'}
+              : 'Toque em um sinal p/ ver a prévia • toque fora p/ fechar'}
           </Text>
         </View>
 

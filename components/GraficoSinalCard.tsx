@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, StyleSheet, Text, View } from 'react-native';
 import SinalHostingPopup from '@/components/SinalHostingPopup';
 import { getSinalHostingUrl } from '@/src/services/sinaisHosting';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import type { SinalGrafico } from '@/src/data/graficos';
 
 interface GraficoSinalCardProps {
@@ -34,8 +35,13 @@ export default function GraficoSinalCard({
   const moveuRef = useRef<boolean>(false);
   const baseRef = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
 
-  const videoUrl = getSinalHostingUrl(sinal.nome);
+  // Alguns cards usam um vídeo de sinal diferente do nome exibido
+  // (ex.: "Mistura comum" mostra o vídeo de "Misturar").
+  const chaveVideo = sinal.video ?? sinal.nome;
+  const videoUrl = getSinalHostingUrl(chaveVideo);
   const ativo = mostrarPreview || arrastando;
+  // Nome exibido: sem underline, mesmo que venha do nome do arquivo.
+  const nomeExibido = formatarNomeSinal(sinal.nome);
 
   // O PanResponder é criado uma vez: acessa as props via ref p/ nunca
   // usar callbacks desatualizadas do primeiro render.
@@ -139,17 +145,17 @@ export default function GraficoSinalCard({
       ]}
       {...panResponder.panHandlers}
       accessibilityRole="button"
-      accessibilityLabel={`Sinal ${sinal.nome}`}
+      accessibilityLabel={`Sinal ${nomeExibido}`}
       accessibilityHint="Segure para ver a prévia do vídeo e solte para fechar. Arraste até um espaço do gráfico."
     >
       <View style={[styles.cardInner, mostrarPreview && styles.cardInnerDim]}>
         <Text style={[styles.cardTitulo, { color: sinal.corTema }]} numberOfLines={2}>
-          {sinal.nome}
+          {nomeExibido}
         </Text>
       </View>
       {mostrarPreview && (
         <SinalHostingPopup
-          titulo={sinal.nome}
+          titulo={chaveVideo}
           videoUrl={videoUrl}
           corTema={sinal.corTema}
           lado={lado}

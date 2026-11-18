@@ -6,6 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -57,80 +60,95 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.iconCircle}>
-        <FontAwesome5 name="key" size={28} color="#7B3E52" />
-      </View>
-      <Text style={styles.title}>Esqueci minha senha</Text>
-      {!state.success ? (
-        <>
-          <Text style={styles.subtitle}>
-            Digite seu e-mail para receber o link de redefinição de senha.
-          </Text>
-          <TextInput
-            style={styles.input}
-            placeholder="E-mail"
-            placeholderTextColor="#888"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            value={state.email}
-            onChangeText={(text) => setState((prev) => ({ ...prev, email: text }))}
-          />
-          {state.errorMessage ? (
-            <View style={styles.errorBox} accessibilityRole="alert">
-              <Text style={styles.errorText}>{state.errorMessage}</Text>
-            </View>
-          ) : null}
-          <TouchableOpacity
-            style={[styles.buttonContainer, state.loading && styles.buttonDisabled]}
-            onPress={handleSend}
-            disabled={state.loading}
-            accessibilityRole="button"
-            accessibilityLabel="Enviar link de redefinição"
-          >
-            {state.loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.btnText}>Enviar link</Text>
-            )}
-          </TouchableOpacity>
-        </>
-      ) : (
-        <View style={styles.successBox} accessibilityRole="alert">
-          <FontAwesome5 name="check-circle" size={24} color="#2e7d32" style={styles.successIcon} />
-          <Text style={styles.successTitle}>E-mail enviado!</Text>
-          <Text style={styles.successText}>
-            Se existir uma conta para{'\n'}
-            <Text style={styles.email}>{state.email.trim()}</Text>
-            {'\n'}você receberá o link de redefinição. Confira também o spam.
-          </Text>
-          <TouchableOpacity
-            style={styles.buttonContainer}
-            onPress={() => router.replace('/auth/login')}
-            accessibilityRole="button"
-            accessibilityLabel="Voltar para o login"
-          >
-            <Text style={styles.btnText}>Voltar para o login</Text>
-          </TouchableOpacity>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.iconCircle}>
+          <FontAwesome5 name="key" size={28} color="#7B3E52" />
         </View>
-      )}
+        <Text style={styles.title}>Esqueci minha senha</Text>
+        {!state.success ? (
+          <>
+            <Text style={styles.subtitle}>
+              Digite seu e-mail para receber o link de redefinição de senha.
+            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="E-mail"
+              placeholderTextColor="#888"
+              autoCapitalize="none"
+              keyboardType="email-address"
+              value={state.email}
+              onChangeText={(text) => setState((prev) => ({ ...prev, email: text }))}
+            />
+            {state.errorMessage ? (
+              <View style={styles.errorBox} accessibilityRole="alert">
+                <Text style={styles.errorText}>{state.errorMessage}</Text>
+              </View>
+            ) : null}
+            <TouchableOpacity
+              style={[styles.buttonContainer, state.loading && styles.buttonDisabled]}
+              onPress={handleSend}
+              disabled={state.loading}
+              accessibilityRole="button"
+              accessibilityLabel="Enviar link de redefinição"
+            >
+              {state.loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.btnText}>Enviar link</Text>
+              )}
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.successBox} accessibilityRole="alert">
+            <FontAwesome5 name="check-circle" size={24} color="#2e7d32" style={styles.successIcon} />
+            <Text style={styles.successTitle}>E-mail enviado!</Text>
+            <Text style={styles.successText}>
+              Se existir uma conta para{'\n'}
+              <Text style={styles.email}>{state.email.trim()}</Text>
+              {'\n'}você receberá o link de redefinição. Confira também o spam.
+            </Text>
+            <TouchableOpacity
+              style={styles.buttonContainer}
+              onPress={() => router.replace('/auth/login')}
+              accessibilityRole="button"
+              accessibilityLabel="Voltar para o login"
+            >
+              <Text style={styles.btnText}>Voltar para o login</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      {!state.success ? (
-        <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
-          <Text style={styles.linkText}>Voltar para o login</Text>
-        </TouchableOpacity>
-      ) : null}
-    </View>
+        {!state.success ? (
+          <TouchableOpacity onPress={() => router.back()} accessibilityRole="button">
+            <Text style={styles.linkText}>Voltar para o login</Text>
+          </TouchableOpacity>
+        ) : null}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
+    backgroundColor: '#f5f0ec',
+  },
+  container: {
+    flexGrow: 1,
     backgroundColor: '#f5f0ec',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    paddingHorizontal: 24,
+    paddingVertical: 40,
   },
   iconCircle: {
     width: 72,

@@ -52,15 +52,12 @@ function traduzErroFirebase(code: string): string {
 interface AuthContextData {
   user: User | null;
   loading: boolean;
-  /** Compat: _layout antigo lia `initializing`; manter alias para não quebrar. */
-  initializing: boolean;
   register: (email: string, password: string, displayName: string, surname: string, username: string) => Promise<void>;
   login: (email: string, password: string) => Promise<{ emailVerified: boolean }>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   refreshUser: () => Promise<boolean>;
-  markEmailVerified: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -257,23 +254,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return verified;
   };
 
-  const markEmailVerified = async () => {
-    const current = auth.currentUser;
-    if (!current) return;
-    await setDoc(
-      doc(db, 'users', current.uid),
-      {
-        uid: current.uid,
-        email: current.email ?? '',
-        emailVerified: true,
-      },
-      { merge: true },
-    ).catch(() => undefined);
-  };
-
   return (
     <AuthContext.Provider
-      value={{ user, loading, initializing: loading, register, login, logout, resetPassword, sendVerificationEmail, refreshUser, markEmailVerified }}
+      value={{ user, loading, register, login, logout, resetPassword, sendVerificationEmail, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

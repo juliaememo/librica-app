@@ -40,7 +40,7 @@ export async function limparCachesLegadosExercicios(): Promise<void> {
 /** Quantas telas/etapas de exercício cada módulo possui. */
 export const TOTAL_ETAPAS_EXERCICIO: Record<string, number> = {
   '1': 2, // O2 + H2O
-  '2': 11, // uma tela por vidraria
+  '2': 9, // uma tela por vidraria (VIDRIAS_DATA)
   '3': 6, // uma tela por substância
   '4': 4, // sal+água, água+óleo, arroz+feijão, água+vinagre
   '5': 4, // um gráfico de cada tipo

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, StyleSheet, Text, View } from 'react-native';
 import SinalHostingPopup from '@/components/SinalHostingPopup';
 import { getSinalHostingUrl } from '@/src/services/sinaisHosting';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import type { MetodoSeparacao } from '@/src/data/separacao-heterogenea';
 
 interface MetodoCardProps {
@@ -39,6 +40,8 @@ export default function MetodoCard({
 
   const videoUrl = getSinalHostingUrl(metodo.nome);
   const ativo = mostrarPreview || arrastando;
+  // Nome exibido: sem underline, mesmo que venha do nome do arquivo.
+  const nomeExibido = formatarNomeSinal(metodo.nome);
 
   // O PanResponder é criado uma vez: acessa as props via ref p/ nunca
   // usar callbacks desatualizadas do primeiro render.
@@ -131,12 +134,12 @@ export default function MetodoCard({
       ]}
       {...panResponder.panHandlers}
       accessibilityRole="button"
-      accessibilityLabel={`Método ${metodo.nome}`}
+      accessibilityLabel={`Método ${nomeExibido}`}
       accessibilityHint="Segure para ver a prévia do vídeo e solte para fechar. Toque ou arraste até o espaço para escolher."
     >
       <View style={[styles.cardInner, ativo && styles.cardInnerAtivo]}>
         <Text style={[styles.cardTitulo, { color: metodo.corTema }]} numberOfLines={2}>
-          {metodo.nome}
+          {nomeExibido}
         </Text>
       </View>
       {mostrarPreview && (

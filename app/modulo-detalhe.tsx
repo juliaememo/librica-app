@@ -8,7 +8,7 @@ import YoutubeIframe from 'react-native-youtube-iframe';
 import SinalCard from '@/components/SinalCard';
 import { esconderPreviewSinal } from '@/src/services/sinalPreviewStore';
 import { getSinaisDoModulo } from '@/src/data/sinais';
-import { SINAIS_SECRETOS } from '@/src/data/modulo-secreto';
+import { SINAIS_SECRETOS, VIDEO_ID_CRIADORES } from '@/src/data/modulo-secreto';
 import { useAuth } from '@/components/AuthContext';
 import { marcarVideoVisto } from '@/src/services/progresso';
 
@@ -32,7 +32,8 @@ export default function ModuloVideoScreen() {
 
   // Pasta secreta (id '8'): usa lista própria `SINAIS_SECRETOS`, isolada do
   // Dicionário e dos módulos 1-7. Outros módulos usam `getSinaisDoModulo(id)`.
-  const sinaisRelacionados = id === '8' ? SINAIS_SECRETOS : getSinaisDoModulo(id);
+  const ehPastaSecreta = id === '8';
+  const sinaisRelacionados = ehPastaSecreta ? SINAIS_SECRETOS : getSinaisDoModulo(id);
 
   // Parte 1 do progresso (50%): vídeo assistido até o fim.
   // O módulo secreto não conta progresso.
@@ -62,7 +63,10 @@ export default function ModuloVideoScreen() {
         <View style={styles.content}>
           <Text style={styles.headerSubtitle}>Vídeo Explicativo</Text>
           <Text style={styles.title}>{titulo || 'Módulo'}</Text>
-          
+
+          {ehPastaSecreta && (
+            <Text style={styles.videoTitulo}>Assista ao making of do Librica!</Text>
+          )}
           <View style={styles.videoWrapper}>
             <YoutubeIframe
               height={220}
@@ -70,6 +74,15 @@ export default function ModuloVideoScreen() {
               onChangeState={handleVideoStateChange}
             />
           </View>
+
+          {ehPastaSecreta && (
+            <>
+              <Text style={styles.videoTitulo}>Conheça os criadores do Librica</Text>
+              <View style={styles.videoWrapper}>
+                <YoutubeIframe height={220} videoId={VIDEO_ID_CRIADORES} />
+              </View>
+            </>
+          )}
 
           {!soVideo && (
             <TouchableOpacity
@@ -86,7 +99,7 @@ export default function ModuloVideoScreen() {
 
           <View style={styles.sinaisSection}>
             <Text style={styles.sinaisTitle}>Sinais deste módulo em Libras</Text>
-            <Text style={styles.sinaisHint}>Toque em um sinal p/ ver a prévia • toque de novo p/ fechar</Text>
+            <Text style={styles.sinaisHint}>Toque em um sinal p/ ver a prévia • toque fora p/ fechar</Text>
             <View style={styles.sinaisGrid}>
               {sinaisRelacionados.map((sinal, index) => (
                 <SinalCard
@@ -128,6 +141,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     color: '#5a3d40', 
     marginBottom: 20 
+  },
+  videoTitulo: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#5a3d40',
+    marginBottom: 8,
   },
   videoWrapper: {
     width: '100%',

@@ -8,13 +8,27 @@ import { useAuth } from '@/components/AuthContext';
 import { db } from '@/src/services/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { calcularProgressoModulos, calcularProgressoTotal } from '@/src/services/progresso';
+import LibrasSignButton from '@/components/LibrasSignButton';
+import type { ChaveSinalNavegacao } from '@/src/services/sinaisNavegacao';
+import { esconderPreviewSinal } from '@/src/services/sinalPreviewStore';
 import {
   DESCRICAO_MODULO_SECRETO,
   TITULO_MODULO_SECRETO,
   VIDEO_ID_MODULO_SECRETO,
 } from '@/src/data/modulo-secreto';
 
-const modulosData = [
+interface ModuloData {
+  id: string;
+  titulo: string;
+  descricao: string;
+  icone: string;
+  corTema: string;
+  corFundo: string;
+  videoId: string;
+  sinal: ChaveSinalNavegacao;
+}
+
+const modulosData: ModuloData[] = [
   {
     id: '1',
     titulo: 'Átomos e Moléculas',
@@ -23,6 +37,7 @@ const modulosData = [
     corTema: '#00796b',
     corFundo: '#e0f2f1',
     videoId: 'FSyAehMdpyI',
+    sinal: 'moduloAtomos',
   },
   {
     id: '2',
@@ -32,6 +47,7 @@ const modulosData = [
     corTema: '#880e4f',
     corFundo: '#fce4ec',
     videoId: 'WorXRPZqjeI',
+    sinal: 'moduloVidraria',
   },
   {
     id: '3',
@@ -41,6 +57,7 @@ const modulosData = [
     corTema: '#f57f17',
     corFundo: '#fffde7',
     videoId: 'hbwKwNhIFM4',
+    sinal: 'moduloSubstancias',
   },
   {
     id: '4',
@@ -50,6 +67,7 @@ const modulosData = [
     corTema: '#512da8',
     corFundo: '#ede7f6',
     videoId: 'iWQfTI0_fFc',
+    sinal: 'moduloMisturas',
   },
   {
     id: '5',
@@ -59,6 +77,7 @@ const modulosData = [
     corTema: '#0277bd',
     corFundo: '#e1f5fe',
     videoId: 'KcMkKfcc7_M',
+    sinal: 'moduloGraficos',
   },
   {
     id: '6',
@@ -68,6 +87,7 @@ const modulosData = [
     corTema: '#d84315',
     corFundo: '#fbe9e7',
     videoId: '3__FIWo28QM',
+    sinal: 'moduloSeparacaoHeterogenea',
   },
   {
     id: '7',
@@ -77,6 +97,7 @@ const modulosData = [
     corTema: '#2e7d32',
     corFundo: '#e8f5e9',
     videoId: 'oCI-07oGg_s',
+    sinal: 'moduloSeparacaoHomogenea',
   },
 ];
 
@@ -116,6 +137,13 @@ export default function HomeScreen() {
         }
       })();
     }, [user?.uid]),
+  );
+
+  // Ao sair da tela, fecha a janelinha de Libras aberta num módulo.
+  useFocusEffect(
+    useCallback(() => {
+      return () => esconderPreviewSinal();
+    }, []),
   );
 
   const secretoLiberado = progressoTotal >= 100;
@@ -163,7 +191,7 @@ export default function HomeScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Módulos</Text>
-        <Text style={styles.sectionCounter}>7 Temas</Text>
+        <Text style={styles.sectionCounter}>{modulosData.length} Temas</Text>
       </View>
 
       {modulosData.map((modulo) => (
@@ -184,10 +212,24 @@ export default function HomeScreen() {
                 {modulo.descricao}
               </Text>
               
-              <View style={[styles.tagBadge, { backgroundColor: '#fff', borderColor: modulo.corTema }]}>
-                <FontAwesome name="sign-language" size={12} color={modulo.corTema} style={{ marginRight: 6 }} />
-                <Text style={[styles.tagBadgeText, { color: modulo.corTema }]}>Vídeo & Atividade</Text>
-              </View>
+              <LibrasSignButton
+                sinal={modulo.sinal}
+                rotulo={modulo.titulo}
+                estilo={[
+                  styles.tagBadge,
+                  { backgroundColor: '#fff', borderColor: modulo.corTema },
+                ]}
+              >
+                <FontAwesome
+                  name="sign-language"
+                  size={12}
+                  color={modulo.corTema}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={[styles.tagBadgeText, { color: modulo.corTema }]}>
+                  Vídeo & Atividade
+                </Text>
+              </LibrasSignButton>
             </View>
 
             <View style={[styles.iconBox, { borderColor: modulo.corTema, backgroundColor: '#fff' }]}>

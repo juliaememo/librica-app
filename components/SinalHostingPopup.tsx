@@ -15,8 +15,6 @@ interface SinalHostingPopupProps {
   abreParaBaixo?: boolean;
 }
 
-export const POPUP_LARGURA = 210;
-
 /**
  * Ponte de compatibilidade: os cards renderizam `<SinalHostingPopup>`
  * enquanto a prévia daquele sinal está aberta. Aqui nada visível é

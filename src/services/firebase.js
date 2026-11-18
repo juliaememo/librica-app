@@ -11,7 +11,6 @@ const firebaseConfig = {
   storageBucket: "librica-app.firebasestorage.app",
   messagingSenderId: "1009349115208",
   appId: "1:1009349115208:web:0f30d89000c2d3e32ac77d",
-  measurementId: "G-YDKJ70QL8T"
 };
 
 // Inicializa o Firebase (evitando duplicar instâncias)
@@ -28,7 +27,7 @@ try {
   authInstance = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
   });
-} catch (e) {
+} catch {
   // auth/already-initialized (ex: Fast Refresh): reutiliza a instância,
   // que já foi criada com persistência acima.
   authInstance = getAuth(app);

@@ -19,6 +19,7 @@ import { lerMapaProgresso, marcarEtapaConcluida, storageKeyExercicio } from '@/s
 import CenaDesenho from '@/components/CenaDesenho';
 import MetodoCard from '@/components/MetodoCard';
 import { embaralhar } from '@/src/utils/embaralhar';
+import { formatarNomeSinal } from '@/src/utils/formatarNomeSinal';
 import {
   getMetodoById,
   mesmoConjunto,
@@ -365,7 +366,7 @@ export default function ExercicioSeparacao({
                     {metodo ? (
                       <View style={[styles.espacoCheio, { borderColor: metodo.corTema, backgroundColor: metodo.corFundo }]}>
                         <Text style={[styles.espacoTexto, { color: metodo.corTema }]}>
-                          {metodo.nome}
+                          {formatarNomeSinal(metodo.nome)}
                         </Text>
                         {!etapaTravada && (
                           <Pressable
@@ -373,7 +374,7 @@ export default function ExercicioSeparacao({
                             hitSlop={8}
                             style={styles.espacoLimpar}
                             accessibilityRole="button"
-                            accessibilityLabel={`Retirar ${metodo.nome}`}
+                            accessibilityLabel={`Retirar ${formatarNomeSinal(metodo.nome)}`}
                           >
                             <FontAwesome name="times" size={14} color="#7B3E52" />
                           </Pressable>
